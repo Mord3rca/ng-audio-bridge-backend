@@ -55,7 +55,10 @@ class song_filter:
 
             #Is genre condition necessary ?
             if( len(self.genres) != 32 ):
-                conditions.append( """genre IN %s""" % str( tuple(self.genres) ) )
+                if len(self.genres) != 1:
+                    conditions.append( """genre IN %s""" % str( tuple(self.genres) ) )
+                else:
+                    conditions.append( """genre=\"%s\"""" % self.genres[0] )
 
             #Create condition string
             for i in range(0, len(conditions)):

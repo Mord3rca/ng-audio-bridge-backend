@@ -1,3 +1,5 @@
+import urllib
+
 def niceuri(e):
     local = e.replace("\\/", "/")
     pos = local.rfind('?')
@@ -6,5 +8,4 @@ def niceuri(e):
     return local
 
 def replace_hexcode(e):
-    e = e.replace("%20", ' ').replace("%22", '"').replace("%7B", '{').replace("%7D", '}').replace("%3A", ':').replace("%2C", ',').replace("%2D", '-').replace("", '').replace("", '').replace("%5B", '[').replace("%5D", ']').replace("%2E", '.')
-    return e
+    return urllib.parse.unquote(e)

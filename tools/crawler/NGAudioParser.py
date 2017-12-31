@@ -1,6 +1,7 @@
-import http.client
-import json
+import http.client, urllib
+import json, sys
 
+sys.path.append("../../")
 from niceFormat import niceuri
 
 class NGAudioParser:
@@ -59,9 +60,9 @@ class NGAudioParser:
             
             #Just read it and get the data !
             jsonObj = json.loads(line)
-            self.composer = jsonObj["artist"]
+            self.composer = urllib.parse.unquote( jsonObj["artist"] )
             self.url = niceuri( jsonObj["filename"] )
-            self.title = jsonObj["name"]
+            self.title = urllib.parse.unquote( jsonObj["name"] )
         elif line.find("itemprop=\"datePublished\"") > 0:
             #Get date and format it for the SWF app.
             pos = line.find("content=\"") + len("content=\"")

@@ -28,13 +28,16 @@ class NGAudioParser:
             response.close()
             return
 
-        data, buff = ["","."*100]
+        #data, buff = ["","."*100]
 
-        while len(buff) >= 100:
-            buff = response.read(100)
-            data += buff.decode("utf-8")
+        #while len(buff) >= 100:
+        #    buff = response.read(100)
+        #    try:
+        #        data += buff.decode("utf-8")
+        #    except:
+        #        pass
         
-        data = data.split('\n')
+        data = response.read(64 * 1024).decode("utf-8").split('\n')
 
         for line in data:
             if line.find("id=\"score_number\"") > 0:

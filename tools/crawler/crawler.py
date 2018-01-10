@@ -4,15 +4,15 @@ from NGAudioParser import NGAudioParser
 from http.client import HTTPSConnection
 
 if __name__ == "__main__":
-    count_error_serverside = 0
+    count_error_serverside, count_error_nf = [0, 0]
+    error_file = open("./id_error_list", 'w')
     print("[*] Openning DB...")
     dbcon = lite.connect("./NG-audio-bridge.sqlite3", check_same_thread=False)
     dbcon.cursor().execute("CREATE TABLE IF NOT EXISTS Songs( Id INT PRIMARY KEY not null, composer STRING, title STRING, score FLOAT, genre STRING, date DATE, url STRING, tags STRING);")
     dbcon.commit()
 
     local = []
-    for x in range(12403, 250001):
-    #for x in [11138]:
+    for x in range(1, 999999):
         resp = None
         for v in range(0,5):
             webconn = HTTPSConnection(NGAudioParser.NG_HOSTNAME)
@@ -32,12 +32,19 @@ if __name__ == "__main__":
                 break
 
         if resp.status == 200:
+            count_error_nf = 0
             obj = NGAudioParser()
             if( obj.run( resp ) ):
                 local.append( tuple( [x, obj.composer, obj.title, obj.score, obj.genre, obj.date, obj.url, ';'.join(obj.tags)] ) )
                 print("[+] ID: " + str(x) + " - Parsed Successfully")
             else:
                 print( "ID: " + str(x), "\t" + obj.errorStr, file=sys.stderr )
+                print(str(x), file=error_file)
+        elif resp.status == 404:
+            count_error_nf += 1
+            if count_error_nf >= 100:
+                print("[*] No songs since 100 ID, assuming end of crawling.")
+                exit(0)
         else:
             print("[-] ID: " + str(x) + " - Status code error (" + str( resp.status ) + ")")
 
@@ -49,3 +56,4 @@ if __name__ == "__main__":
 
     print("[*] Jobs finished. Good Bye.")
     dbcon.close()
+    error_file.close()

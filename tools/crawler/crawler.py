@@ -5,7 +5,7 @@ from http.client import HTTPSConnection
 
 if __name__ == "__main__":
     count_error_serverside, count_error_nf = [0, 0]
-    error_file = open("./id_error_list", 'w')
+    error_file = open("./id_error_list", 'a')
     print("[*] Openning DB...")
     dbcon = lite.connect("./NG-audio-bridge.sqlite3", check_same_thread=False)
     dbcon.cursor().execute("CREATE TABLE IF NOT EXISTS Songs( Id INT PRIMARY KEY not null, composer STRING, title STRING, score FLOAT, genre STRING, date DATE, url STRING, tags STRING);")
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                 print("[+] ID: " + str(x) + " - Parsed Successfully")
             else:
                 print( "ID: " + str(x), "\t" + obj.errorStr, file=sys.stderr )
-                print(str(x), file=error_file)
+                error_file.write(str(x))
         elif resp.status == 404:
             count_error_nf += 1
             if count_error_nf >= 100:
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         else:
             print("[-] ID: " + str(x) + " - Status code error (" + str( resp.status ) + ")")
 
-        if len(local) >= 250 or x == 250000:
+        if len(local) >= 250:
             print("Inserting data in DB...")
             dbcon.cursor().executemany("INSERT INTO Songs VALUES(?, ?, ?, ?, ?, ?, ?, ?)", tuple(local))
             dbcon.commit()

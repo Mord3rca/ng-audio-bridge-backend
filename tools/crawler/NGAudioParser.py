@@ -1,8 +1,12 @@
 import http.client, urllib
-import json, sys, re
+import json, re
 
-sys.path.append("../../")
-from niceFormat import niceuri
+def formatURL(e):
+    local = e.replace("\\/", "/")
+    pos = local.rfind('?')
+    if( pos > 0):
+        local = local[:pos]
+    return local
 
 class NGAudioParser:
     
@@ -43,6 +47,8 @@ class NGAudioParser:
             if line.find("id=\"score_number\"") > 0:
                 pos1, pos2 = [ line.find('>'), line.find('<', 15) ]
                 self.score = line[pos1+1:pos2]
+                if( self.score == "Awaiting votes"):
+                  self.score = -1
             elif line.find("\"params\":") > 0:
                 #get the embedded player JSON config
                 pos1, pos2 = [ line.find("\"params\":") + len( "\"params\":" ),
@@ -52,7 +58,7 @@ class NGAudioParser:
                 #Just read it and get the data !
                 jsonObj = json.loads(line)
                 self.composer = urllib.parse.unquote( jsonObj["artist"] )
-                self.url = niceuri( jsonObj["filename"] )
+                self.url = formatURL( jsonObj["filename"] )
                 self.title = urllib.parse.unquote( jsonObj["name"] )
             elif line.find("itemprop=\"datePublished\"") > 0:
                 #Get date and format it for the SWF app.
@@ -75,7 +81,7 @@ class NGAudioParser:
             self.errorStr = "[NGParser] Date parsing failed."
             return False
 
-        if ( float( self.score ) > 5 or float( self.score ) < 0 ):
+        if ( ( float( self.score ) > 5 or float( self.score ) < 0 ) and self.score != -1):
             self.errorStr = "[NGParser] Score not in range [0-5]"
             return False
 
@@ -100,7 +106,7 @@ if __name__ == "__main__":
     from random import randint
     obj, conn = [NGAudioParser(), http.client.HTTPSConnection("www.newgrounds.com")]
     objid = str( randint( 0, 99999 ) )
-    #objid = "594742"
+    #objid = "550930"
     conn.request("GET", obj.NG_AUDIO_URI + objid )
     check = obj.run( conn.getresponse() )
 

@@ -1,7 +1,7 @@
 from dbManager import db_manager
 from filter import song_filter
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from niceFormat import replace_hexcode
+import urllib
 
 #THIS PYTHON FILE IS USED TO COMMUNICATE WITH THE APP (ROOT NEEDED for port 80)
 HOSTNAME="localhost"
@@ -44,14 +44,14 @@ class HttpHandler(BaseHTTPRequestHandler):
             length = int( self.headers["Content-Length"] )
             data = str( self.rfile.read(length), "utf-8" )
             #Assuming FilterJSON received.
-            #FilterJSON = json.loads( replace_hexcode( data[11:] )
-            #print( replace_hexcode( data[11:] ) )
+            #FilterJSON = json.loads( urllib.parse.unquote( data[11:] )
+            #print( urllib.parse.unquote( data[11:] ) )
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             
             global DB
             sfilter = song_filter()
-            sfilter.load_from_json( replace_hexcode( data[11:] ) )
+            sfilter.load_from_json( urllib.parse.unquote( data[11:] ) )
             
             tmp_str = "{\"ResultSet\":%s}" % DB.get_song_list( sfilter )
             tmp_str = bytes( tmp_str, "utf-8" )

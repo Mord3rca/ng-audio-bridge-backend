@@ -15,6 +15,14 @@ class NGAudioParser:
     
     RE_DATEFORMAT = re.compile("\d{4}/\d{2}/\d{2}")
 
+    GENRE_LIST = ('Techno', 'Funk', 'Dance', 'Trance', 'Classic Rock', 'Video Game', 'Ambient', 'Drum N Bass', 'Miscellaneous', 'Classical',
+                  'Blues', 'Grunge', 'House', 'Hip Hop - Olskool', 'Heavy Metal', 'R&amp;B',
+                  'New Wave', 'Hip Hop - Modern', 'Industrial', 'Jazz', 'Goth',
+                  'General Rock', 'Country', 'Ska', 'Brit Pop', 'Bluegrass', 'Punk',
+                  'World', 'Indie', 'Pop', 'Cinematic', 'Voice Demo',
+                  'A Capella', 'Spoken Word', 'Dubstep', 'Solo Instrument',
+                  'Storytelling', 'Experimental', 'Fusion', 'Drama', 'Comedy' )
+
     def __init__(self):
         self.errorStr = "Obj not run."
 
@@ -32,16 +40,18 @@ class NGAudioParser:
             response.close()
             return
 
-        #data, buff = ["","."*100]
+        data, buff = ["",b'']
 
-        #while len(buff) >= 100:
-        #    buff = response.read(100)
-        #    try:
-        #        data += buff.decode("utf-8")
-        #    except:
-        #        pass
-        
-        data = response.read(64 * 1024).decode("utf-8").split('\n')
+        while True:
+          buff += response.read( 1024 )
+          if b'</html>' in buff:
+            break
+
+        try:
+          data = buff.decode("utf-8").split('\n')
+        except:
+          self.strError = "[NGParser] Couldn't decode to UTF-8"
+          return False
 
         for line in data:
             if line.find("id=\"score_number\"") > 0:
@@ -85,8 +95,7 @@ class NGAudioParser:
             self.errorStr = "[NGParser] Score not in range [0-5]"
             return False
 
-        #TODO: PUT Genre verification here.
-        if self.genre == "Error":
+        if not self.genre in self.GENRE_LIST:
             self.errorStr = "[NGParser] Genre parsing error."
             return False
         
@@ -105,12 +114,13 @@ class NGAudioParser:
 if __name__ == "__main__":
     from random import randint
     obj, conn = [NGAudioParser(), http.client.HTTPSConnection("www.newgrounds.com")]
-    objid = str( randint( 0, 99999 ) )
-    #objid = "550930"
+    #objid = str( randint( 0, 850000 ) )
+    objid = "710"
+
+    print( "ID: " + objid )
     conn.request("GET", obj.NG_AUDIO_URI + objid )
     check = obj.run( conn.getresponse() )
 
-    print( "ID: " + objid )
     if not check:
         print( obj.errorStr )
     else:

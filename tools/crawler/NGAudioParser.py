@@ -21,7 +21,7 @@ class NGAudioParser:
                   'General Rock', 'Country', 'Ska', 'Brit Pop', 'Bluegrass', 'Punk',
                   'World', 'Indie', 'Pop', 'Cinematic', 'Voice Demo',
                   'A Capella', 'Spoken Word', 'Dubstep', 'Solo Instrument',
-                  'Storytelling', 'Experimental', 'Fusion', 'Drama', 'Comedy' )
+                  'Storytelling', 'Experimental', 'Fusion', 'Drama', 'Comedy', 'Chipstep', 'Synthwave', 'Informational', 'Nerdcore' )
 
     def __init__(self):
         self.errorStr = "Obj not run."
@@ -96,7 +96,7 @@ class NGAudioParser:
             return False
 
         if not self.genre in self.GENRE_LIST:
-            self.errorStr = "[NGParser] Genre parsing error."
+            self.errorStr = "[NGParser] Genre parsing error. Unknown genre: " + self.genre
             return False
         
         return True
@@ -114,8 +114,8 @@ class NGAudioParser:
 if __name__ == "__main__":
     from random import randint
     obj, conn = [NGAudioParser(), http.client.HTTPSConnection("www.newgrounds.com")]
-    #objid = str( randint( 0, 850000 ) )
-    objid = "710"
+    objid = str( randint( 0, 850000 ) )
+    #objid = "710"
 
     print( "ID: " + objid )
     conn.request("GET", obj.NG_AUDIO_URI + objid )

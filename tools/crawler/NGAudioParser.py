@@ -21,7 +21,8 @@ class NGAudioParser:
                   'General Rock', 'Country', 'Ska', 'Brit Pop', 'Bluegrass', 'Punk',
                   'World', 'Indie', 'Pop', 'Cinematic', 'Voice Demo',
                   'A Capella', 'Spoken Word', 'Dubstep', 'Solo Instrument',
-                  'Storytelling', 'Experimental', 'Fusion', 'Drama', 'Comedy', 'Chipstep', 'Synthwave', 'Informational', 'Nerdcore' )
+                  'Storytelling', 'Experimental', 'Fusion', 'Drama', 'Comedy', 'Chipstep', 'Synthwave', 'Informational', 'Nerdcore',
+                  'Music', 'Creepypasta', 'Discussion' )
 
     def __init__(self):
         self.errorStr = "Obj not run."

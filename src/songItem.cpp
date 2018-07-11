@@ -48,12 +48,27 @@ static std::array< const std::string, 9 > _genreGroupStr = {{
  "Group Genre Unknown"
 }};
 
-static const std::string& genreToStr(enum genre& _g)
+static const std::string& genreToStr(const enum genre& _g)
 {
   return _genreStr[_g];
 }
 
-static const std::string& genreToGroupStr(enum genre& _g)
+static const enum genre strToGenre( const std::string& s )
+{
+  for( auto i : _genreStr )
+  {
+    if( std::get<1>(i) == s )
+      return std::get<0>(i);
+  }
+
+  //HEY ! Guess what ?! It's special case time !
+  if( s == "R&amp;B" )
+    return genre::R_B;
+  
+  return genre::UNKNOWN;
+}
+
+static const std::string& genreToGroupStr(const enum genre& _g)
 {
   switch( _g )
   {
@@ -148,7 +163,7 @@ SongItem::SongItem(int argc, char **argv, char **azColumn) : SongItem()
     else if( columnName == "date" )
       m_date = value;
     else if( columnName == "genre" )
-      m_genre = genre::UNKNOWN;
+      m_genre = strToGenre(value);
     else if( columnName == "url" )
       m_path = value;
   }
@@ -160,4 +175,17 @@ SongItem::~SongItem()
 bool SongItem::operator==( const SongItem& s ) const noexcept
 {
   return s.getId() == this->getId();
+}
+
+std::ostream& operator<<(std::ostream& out, const SongItem& e)
+{
+  out << "Id:       " << e.getId() << std::endl
+      << "Name:     " << e.getSongName() << std::endl
+      << "Composer: " << e.getComposerName() << std::endl
+      << "Score:    " << e.getScore() << std::endl
+      << "Genre:    " << genreToStr(e.getGenre()) 
+                      << " (" + genreToGroupStr(e.getGenre()) +")" << std::endl
+      << "URL:      " << e.getURL() << std::endl;
+  
+  return out;
 }

@@ -4,6 +4,8 @@
 #include <array>
 #include <map>
 
+#include <ostream>
+
 //Genre classification of 10/07/2018
 enum class genre
 {
@@ -39,8 +41,9 @@ enum class genre
   UNKNOWN
 };
 
-static const std::string& genreToStr(enum genre&);
-static const std::string& genreToGroupStr(enum genre&);
+static const std::string& genreToStr(const enum genre&);
+static const std::string& genreToGroupStr(const enum genre&);
+static const enum genre strToGenre(const std::string&);
 
 class SongItem
 {
@@ -67,6 +70,11 @@ public:
   
   const std::string& getSubmissionDate() const noexcept
   {return m_date;}
+  
+  const std::string& getURL() const noexcept
+  {return m_path;}
+  
+  friend std::ostream& operator<<(std::ostream&, const SongItem&);
   
 private:
   unsigned int  m_id;

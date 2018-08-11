@@ -6,7 +6,7 @@ static std::map< enum genre, const std::string > _genreStr = {{
   
   {genre::AMBIENT, "Ambient"}, {genre::CHIPSTEP, "Chipstep"},
   {genre::DANCE, "Dance"}, {genre::DRUM_N_BASS, "Drum N Bass"},
-  {genre::DUPSTEP, "Dupstep"}, {genre::HOUSE, "House"},
+  {genre::DUPSTEP, "Dubstep"}, {genre::HOUSE, "House"},
   {genre::INDUSTRIAL, "Industrial"}, {genre::NEW_WAVE, "New Wave"},
   {genre::SYNTHWAVE, "Synthwave"}, {genre::TECHNO, "Techno"},
   {genre::TRANCE, "Trance"}, {genre::VIDEO_GAME, "Video Game"},

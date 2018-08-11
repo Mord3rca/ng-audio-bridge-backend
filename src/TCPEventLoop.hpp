@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <string>
+#include <vector>
 #include <map>
 
 #include <atomic>
@@ -42,6 +43,9 @@ public:
   const bool isRunning() const
   {return m_run;}
   
+  void tcp_close_request(int fd)
+  {m_closefds.push_back(fd);}
+  
   virtual void OnConnect(int, const std::string&, const int){}
   
   virtual void OnReceived(int, char* buff, const ssize_t size){}
@@ -53,8 +57,10 @@ private:
   int m_socklisten, m_pollfd;
   std::atomic<bool> m_run;
   
-  void _create(int);
-  void _close(int);
+  std::vector<int> m_closefds;
+  
+  void _tcp_create(int);
+  void _tcp_close(int);
   void _gethostinfo(struct sockaddr&, std::string&, int&);
   
   int m_maxconn;

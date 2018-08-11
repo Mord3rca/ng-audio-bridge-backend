@@ -41,9 +41,9 @@ enum class genre
   UNKNOWN
 };
 
-static const std::string& genreToStr(const enum genre&);
-static const std::string& genreToGroupStr(const enum genre&);
-static const enum genre strToGenre(const std::string&);
+const std::string& genreToStr(const enum genre&);
+const std::string& genreToGroupStr(const enum genre&);
+const enum genre strToGenre(const std::string&);
 
 class SongItem
 {

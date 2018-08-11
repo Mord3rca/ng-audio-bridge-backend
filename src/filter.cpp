@@ -1,12 +1,30 @@
 #include "filter.hpp"
 
-constexpr enum genre ALL_GENRE[] {genre::AMBIENT};
-
 filter::filter() :  m_minscore(0), m_maxscore(5),
                     m_mindate("2003/01/01")
 {
-  for(auto i : ALL_GENRE)
-    m_allowedgenre.push_back(i);
+  m_allowedgenre = {{
+    genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
+  
+    genre::AMBIENT, genre::CHIPSTEP, genre::DANCE, genre::DRUM_N_BASS, genre::DUPSTEP,
+    genre::HOUSE, genre::INDUSTRIAL, genre::NEW_WAVE, genre::SYNTHWAVE, genre::TECHNO,
+    genre::TRANCE, genre::VIDEO_GAME,
+    
+    genre::HIP_HOP_MODERN, genre::HIP_HOP_OLSKOOL, genre::NERDCORE, genre::R_B,
+
+    genre::BRIT_POP, genre::CLASSICAL_ROCK, genre::GENERAL_ROCK, genre::GRUNGE,
+    genre::HEAVY_METAL, genre::INDIE, genre::POP, genre::PUNK,
+
+    genre::CINEMATIC, genre::EXPERIMENTAL, genre::FUNK, genre::FUSION, genre::GOTH, genre::MISCELLANEOUS,
+    genre::SKA, genre::WORLD,
+
+    genre::DISCUSSION, genre::MUSIC, genre::STORYTELLING,
+
+    genre::BLUEGRASS, genre::BLUES, genre::COUNTRY,
+    
+    genre::A_CAPELLA, genre::COMEDY, genre::CREEPYPASTA, genre::DRAMA,
+    genre::INFORMATIONAL, genre::SPOKEN_WORLD, genre::VOICE_DEMO
+  }};
 }
 
 filter::filter( const Json::Value& root ) : filter()
@@ -19,17 +37,26 @@ filter::~filter()
 
 void filter::setViaAudioBridgeJson( const Json::Value& root )
 {
-  try{
-    m_minscore = root["minScore"].asFloat();
-    m_maxscore = root["maxScore"].asFloat();
-    m_mindate = root["minDate"].asString();
-    m_maxdate = root["maxDate"].asString();
-  } catch( std::exception& err )
-  {}
-  
   std::string::size_type pos = 0;
-  while( (pos = m_mindate.find('-')) != std::string::npos )
-    m_mindate.replace(pos, 1, "/");
-  while( (pos = m_maxdate.find('-')) != std::string::npos )
-    m_maxdate.replace(pos, 1, "/");
+  
+  if( root["minScore"] != Json::Value::nullSingleton() )
+    m_minscore = root["minScore"].asFloat();
+  
+  if( root["maxScore"] != Json::Value::nullSingleton() )
+    m_maxscore = root["maxScore"].asFloat();
+  
+  if( root["minDate"] != Json::Value::nullSingleton() )
+  {
+    m_mindate = root["minDate"].asString();
+    while( (pos = m_mindate.find('-')) != std::string::npos )
+      m_mindate.replace(pos, 1, "/");
+  }
+  
+  if( root["maxDate"] != Json::Value::nullSingleton() )
+  {
+    m_maxdate = root["maxDate"].asString();
+    
+    while( (pos = m_maxdate.find('-')) != std::string::npos )
+      m_maxdate.replace(pos, 1, "/");
+  }
 }

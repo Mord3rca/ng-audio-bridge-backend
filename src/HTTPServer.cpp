@@ -3,6 +3,7 @@
 static std::map<http::status_code, const std::string> _stat_code_to_str = 
 {{
   {http::status_code::OK, "HTTP/1.1 200 OK"},
+  {http::status_code::MOVED_PERMANENTLY, "HTTP/1.1 301 Moved Permanently"},
   {http::status_code::FORBIDDEN, "HTTP/1.1 403 Forbidden"},
   {http::status_code::NOT_FOUND, "HTTP/1.1 404 Not Found"},
   {http::status_code::INTERNAL_SERVER_ERROR, "HTTP/1.1 500 Internal Server Error"}
@@ -31,27 +32,46 @@ void http::Server::OnConnect(int fd, const std::string &ip, const int port)
 
 void http::Server::OnReceived(int fd, char *buff, const ssize_t size)
 {
-  http::Request request(buff, size);
+  http::Client* cli = m_clients[fd]; http::Request* req;
   
-  switch( request.getMethod() )
+  if( !cli->m_incomming ) cli->m_incomming = new http::Request();
+  req = cli->m_incomming;
+  
+  http::Parser writer(req);
+  writer.write( buff, size );
+  
+  if( writer.isComplete() )
   {
-    case http::method::GET:
-      this->OnGet(*m_clients[fd], request);
-      break;
+    switch( req->getMethod() )
+    {
+      case http::method::GET:
+        this->OnGet(*cli, *req);
+        break;
+      
+      case http::method::POST:
+        this->OnPost(*cli, *req);
+        break;
+      
+      case http::method::UNKNOWN:
+      default:
+      std::cout << "Paquet dropped" << std::endl;
+    }
+    std::string connection_policy = req->getHeader("Connection");
+    if( connection_policy.find("Keep-Alive") == std::string::npos ||
+        connection_policy.find("keep-alive") == std::string::npos )
+      http_close_request(*cli);
     
-    case http::method::POST:
-      this->OnPost(*m_clients[fd], request);
-      break;
-    
-    case http::method::UNKNOWN:
-    default:
-    std::cout << "Paquet dropped" << std::endl;
+    delete req; cli->m_incomming = nullptr;
   }
 }
 
-void http::Server::OnError(int, const std::string &err)
+void http::Server::OnError(int fd, const std::string &err)
 {
   std::cerr << "Something went wrong: " << err << std::endl;
+  
+  auto i = m_clients.find(fd);
+  m_clients.erase(fd);
+  delete i->second;
 }
 
 void http::Server::OnDisconnect(int fd)
@@ -67,6 +87,7 @@ void http::Server::OnPost(http::Client &client, const http::Request &req)
 {
   http::Response resp;
   resp.setStatusCode(http::status_code::OK);
+  resp.addHeader("Content-Type", "text/plain");
   
   resp.appendData("Working.");
   
@@ -77,65 +98,11 @@ void http::Server::OnGet(http::Client &client, const http::Request &req)
 {
   http::Response resp;
   resp.setStatusCode(http::status_code::OK);
+  resp.addHeader("Content-Type", "text/plain");
   
   resp.appendData("Working.");
   
   client << resp;
-}
-
-void http::Request::_parse(const char *buff, const ssize_t len)
-{
-  std::string data(buff, len);
-  std::istringstream stream(data);
-  
-  while(!stream.eof())
-  {
-    std::string line; std::getline(stream, line);
-    if( line == "\r" ) //End of header or end packet
-      break;
-    
-    if( line.find("GET") != std::string::npos || line.find("POST") != std::string::npos )
-    {
-      std::istringstream i(line);
-      std::string method;
-      
-      i >> method >> m_uri;
-      if(method == "GET")
-        m_method = http::method::GET;
-      else if( method == "POST" )
-        m_method = http::method::POST;
-    }
-    else
-    {
-      std::istringstream i(line);
-      std::string key, data;
-      
-      std::getline(i, key, ':');
-      std::getline(i, data, '\r');
-      
-      if(key == "Cookie")
-      {
-        std::istringstream k(data);
-        while( !k.eof() )
-        {
-          std::string entity, name, value;
-          std::getline(k, entity, ';');
-          
-          std::string::size_type delim = entity.find('=');
-          name  = entity.substr(0, delim);
-          value = entity.substr(delim+1);
-          
-          //TODO: Better function PLZ
-          if( name[0] == ' ' )
-            name = name.substr(1);
-          
-          m_cookies[name] = value;
-        }
-      }
-      else
-        m_headers[key] = data;
-    }
-  }
 }
 
 http::Response::Response(){}
@@ -165,7 +132,7 @@ void http::Response::appendData(const std::string &data)
 void http::Response::clearData()
 { m_data.clear(); }
 
-http::Client::Client(int fd) : m_fd(fd)
+http::Client::Client(int fd) : m_fd(fd), m_incomming(nullptr)
 {}
 
 http::Client& http::Client::operator <<( const http::Response &resp)
@@ -194,39 +161,115 @@ http::Client& http::Client::send( const http::Response &resp)
   return *this;
 }
 
-/*
-std::ostream& operator<<(std::ostream &out, const http::Request &req)
+void http::Server::_http_close( http::Client& cli )
 {
-  out << "Method: ";
-  switch(req.m_method)
-  {
-    case http::method::GET:
-      out << "GET";
-      break;
-    case http::method::POST:
-      out << "POST";
-      break;
-    
-    case http::method::UNKNOWN:
-    default:
-      out << "UNKNOWN";
-      break;
-  }
-  
-  out << std::endl << "Rquested URI: " << req.m_uri << std::endl
-      << "-- HEADERS -- " << std::endl;
-  for( auto i : req.m_headers )
-    out << std::get<0>(i) << ": " << std::get<1>(i) << std::endl;
-  
-  if( !req.m_cookies.empty() )
-  {
-    out << std::endl << "-- Cookies --" << std::endl;
-    for(auto i : req.m_cookies )
-      out << std::get<0>(i) << ": " << std::get<1>(i) << std::endl;
-  }
-  
-  out << std::endl;
-  
-  return out;
+  for( auto i : m_clients )
+    if( std::get<1>(i) == &cli )
+      tcp_close_request( std::get<0>(i) );
 }
-*/
+
+http::Parser::Parser() : m_target(nullptr) {}
+http::Parser::Parser(http::Request *req) : m_target(req) {}
+
+http::Parser::~Parser(){}
+
+void http::Parser::setRequest( http::Request *req ) noexcept
+{ m_target = req; }
+
+bool http::Parser::isComplete() const noexcept
+{
+  return m_target->m_isHeaderComplete &&
+  ( (m_target->m_datalen == 0) ? (true) : ( m_target->m_data.length() == m_target->m_datalen ) );
+}
+
+void http::Parser::write( const char *buff, const ssize_t len )
+{
+  if( !m_target ) return;
+  
+  std::string strbuff(buff, len);
+  std::istringstream stream(strbuff);
+  
+  while( stream.good() && (!stream.eof() || !this->isComplete()) )
+  {
+    if( !m_target->m_isHeaderComplete )
+    {
+      std::string line;
+      std::getline(stream, line);
+      if( line == "\r" )
+      {
+        m_target->m_isHeaderComplete = true;
+        if( !m_target->getHeader("Content-Length").empty() )
+          m_target->m_datalen = std::strtoul(m_target->getHeader("Content-Length").c_str(), nullptr, 0);
+        
+        continue;
+      }
+      
+      if( line.find("GET") != std::string::npos || line.find("POST") != std::string::npos )
+      {
+        std::istringstream i(line);
+        std::string method;
+        
+        i >> method >> m_target->m_uri;
+        if(method == "GET")
+          m_target->m_method = http::method::GET;
+        else if( method == "POST" )
+          m_target->m_method = http::method::POST;
+      }
+      else
+      {
+        std::istringstream i(line);
+        std::string key, data;
+        
+        std::getline(i, key, ':');
+        std::getline(i, data, '\r');
+        
+        if(key == "Cookie")
+        {
+          std::istringstream k(data);
+          while( !k.eof() )
+          {
+            std::string entity, name, value;
+            std::getline(k, entity, ';');
+            
+            std::string::size_type delim = entity.find('=');
+            name  = entity.substr(0, delim);
+            value = entity.substr(delim+1);
+            
+            //TODO: Better function PLZ
+            if( name[0] == ' ' )
+              name = name.substr(1);
+            
+            m_target->m_cookies[name] = value;
+          }
+        }
+        else
+          m_target->m_headers[key] = data;
+      }
+    }
+    else
+    {
+      if( this->isComplete() ) break;
+      
+      m_target->m_data += stream.str().substr( stream.tellg() );
+      break;
+    }
+  }
+}
+
+void http::unescape( std::string &str)
+{
+  std::string result;
+  //TODO: Error handling, just in case.
+  for( size_t i = 0; i < str.length(); i++ )
+  {
+    if( str[i] == '%' )
+    {
+      char u = static_cast<char>(std::strtol( str.substr(i+1, 2).c_str(), nullptr, 16 ));
+      result += u;
+      i+=2;
+    }
+    else
+      result += str[i];
+  }
+  str = result;
+}

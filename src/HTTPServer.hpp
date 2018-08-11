@@ -11,6 +11,9 @@
 
 namespace http
 {
+  
+  void unescape(std::string&);
+  
   enum class method
   {
     GET, POST, UNKNOWN
@@ -19,16 +22,17 @@ namespace http
   enum class status_code
   {
     OK=200,
+    MOVED_PERMANENTLY=301,
     FORBIDDEN=403, NOT_FOUND=404,
     INTERNAL_SERVER_ERROR=500
   };
   
   class Request
   {
+    friend class Parser;
   public:
-    Request() : m_method(method::UNKNOWN) {}
-    Request(const char *buff, const ssize_t len)
-    {_parse(buff, len);}
+    Request() : m_method(method::UNKNOWN), m_datalen(0), m_isHeaderComplete(false)
+    {}
     
     const std::string   getUri() const noexcept
     {return m_uri;}
@@ -53,13 +57,18 @@ namespace http
       return "";
     }
     
-  private:
-    //friend std::ostream& operator<<(std::ostream&, const http::Request&);
-    void _parse(const char*, const ssize_t);
+    const std::string& getData() const noexcept
+    {return m_data;}
     
+    const ssize_t getDataLength() const noexcept
+    {return m_datalen;}
+    
+  private:
     std::map<std::string, std::string> m_headers, m_cookies;
     std::string m_uri, m_data;
     http::method m_method;
+    
+    size_t m_datalen; bool m_isHeaderComplete;
   };
   
   class Response
@@ -84,6 +93,7 @@ namespace http
   //Will be used for more advanced shit. Like Auth etc
   class Client
   {
+    friend class Server;
   public:
     Client(int);
     
@@ -92,6 +102,7 @@ namespace http
     
   private:
     int m_fd;
+    Request* m_incomming;
   };
 
   class Server : public TCPServer
@@ -107,12 +118,33 @@ namespace http
       void OnError(int, const std::string&) override;
       void OnDisconnect(int) override;
       
+      void http_close_request(http::Client& cli)
+      { _http_close(cli); }
+      
       //HTTP Callbacks
-      void OnPost(http::Client&, const Request&);
-      void OnGet(http::Client&, const Request&);
+      virtual void OnPost(http::Client&, const http::Request&);
+      virtual void OnGet(http::Client&, const http::Request&);
     
-  private:
+    private:
+    //void _parse(Client&, const char*, const ssize_t);
+    void _http_close(http::Client&);
     std::map<int, Client*> m_clients;
+  };
+  
+  class Parser
+  {
+  public:
+    Parser();
+    Parser(Request*);
+    
+    ~Parser();
+    
+    void setRequest(Request*) noexcept;
+    void write(const char*, const ssize_t);
+    
+    bool isComplete() const noexcept;
+  private:
+    Request* m_target;
   };
 }
 #endif //HTTPSERVER_HPP

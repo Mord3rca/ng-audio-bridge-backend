@@ -80,7 +80,7 @@ void TCPServer::serve()
           !(events[i].events & EPOLLIN) )
       {
         OnError(events[i].data.fd, "Polling error: Object pulled without event.");
-        _close(events[i].data.fd);
+        _tcp_close(events[i].data.fd);
         continue;
       }
       else if( events[i].data.fd == m_socklisten )
@@ -103,7 +103,7 @@ void TCPServer::serve()
           if( !sock_non_block(infd) )
             throw std::runtime_error("sock_non_block(): error");
           
-          _create(infd);
+          _tcp_create(infd);
           
           std::string ip; int port;
           _gethostinfo(in_addr, ip, port);
@@ -125,20 +125,29 @@ void TCPServer::serve()
           if( count == -1)
           {
             if( errno != EAGAIN )
-              throw std::runtime_error("TCPServer Loop: read() error");
+            //{_tcp_close(fd); break;}
+              throw std::runtime_error("TCP Event Loop: read() error");
             
             break;
           }
           else if( count == 0 )
           {
             {OnDisconnect(fd);}
-            _close(fd);
+            _tcp_close(fd);
             break;
           }
           
           {OnReceived(fd, buff, count);}
         }
       }
+    }
+    
+    if( !m_closefds.empty() )
+    {
+      for( auto i : m_closefds )
+        _tcp_close(i);
+      
+      m_closefds.clear();
     }
   }
   
@@ -153,7 +162,7 @@ void TCPServer::setMaxConn(int max) noexcept
 int TCPServer::getMaxConn() const noexcept
 { return m_maxconn; }
 
-void TCPServer::_create(int fd)
+void TCPServer::_tcp_create(int fd)
 {
   //Register in epoll watchlist
   struct epoll_event event;
@@ -163,7 +172,7 @@ void TCPServer::_create(int fd)
     throw std::runtime_error("epoll_ctl() error");
 }
 
-void TCPServer::_close(int fd)
+void TCPServer::_tcp_close(int fd)
 {
   epoll_ctl(m_pollfd, EPOLL_CTL_DEL, fd, nullptr);
   close(fd);

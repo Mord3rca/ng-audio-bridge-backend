@@ -48,12 +48,12 @@ static std::array< const std::string, 9 > _genreGroupStr = {{
  "Group Genre Unknown"
 }};
 
-static const std::string& genreToStr(const enum genre& _g)
+const std::string& genreToStr(const enum genre& _g)
 {
   return _genreStr[_g];
 }
 
-static const enum genre strToGenre( const std::string& s )
+const enum genre strToGenre( const std::string& s )
 {
   for( auto i : _genreStr )
   {
@@ -68,7 +68,7 @@ static const enum genre strToGenre( const std::string& s )
   return genre::UNKNOWN;
 }
 
-static const std::string& genreToGroupStr(const enum genre& _g)
+const std::string& genreToGroupStr(const enum genre& _g)
 {
   switch( _g )
   {

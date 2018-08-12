@@ -7,6 +7,7 @@
 #include <json/json.h>
 
 #include "songItem.hpp"
+#include "HTTPServer.hpp" //http::unescape
 
 class filter
 {

@@ -65,7 +65,13 @@ void filter::setViaAudioBridgeJson( const Json::Value& root )
     m_allowedgenre.clear();
     for( auto i : root["genres"] )
     {
-      enum genre gr = strToGenre( i.asString() );
+      std::string _g = i.asString(); std::string::size_type t;
+      
+      http::unescape(_g);
+      while( ( t = _g.find('+') ) != std::string::npos )
+        _g.replace(t, 1, " ");
+      
+      enum genre gr = strToGenre( _g );
       m_allowedgenre.push_back( gr );
     }
   }

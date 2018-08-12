@@ -56,7 +56,22 @@ const std::string AudioDatabase::_create_query_from_filter( const filter &f )
   
   if( f.getAllowedGenre().size() < 48 )
   {
-    //TODO: Write the condition genre here. (after DB reorganisation)
+    auto genres = f.getAllowedGenre();
+    if( genres.size() == 1 )
+      conditions.push_back("genre=" + std::to_string( static_cast<int>(genres[0]) ));
+    else
+    {
+      std::string tmp = "genre IN (";
+      for(size_t i = 0; i < genres.size(); i++)
+      {
+        tmp += std::to_string( static_cast<int>(genres[0]) );
+        if( i != genres.size() - 1 )
+          tmp += ", ";
+      }
+      tmp+=')';
+      conditions.push_back(tmp);
+    }
+        
   }
   
   if( !conditions.empty() )

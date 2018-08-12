@@ -59,4 +59,14 @@ void filter::setViaAudioBridgeJson( const Json::Value& root )
     while( (pos = m_maxdate.find('-')) != std::string::npos )
       m_maxdate.replace(pos, 1, "/");
   }
+  
+  if( root["genres"] != Json::Value::nullSingleton() )
+  {
+    m_allowedgenre.clear();
+    for( auto i : root["genres"] )
+    {
+      enum genre gr = strToGenre(i.asString());
+      m_allowedgenre.push_back( gr );
+    }
+  }
 }

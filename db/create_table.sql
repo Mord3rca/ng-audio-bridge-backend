@@ -1,0 +1,71 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS GenreType (
+  id INTEGER PRIMARY KEY NOT NULL,
+  name STRING NOT NULL
+);
+
+INSERT INTO GenreType (id, name)
+VALUES
+  (-1, "Unknown"),
+  (0, "Classical"),
+  (1, "Jazz"),
+  (2, "Solo Instrument"),
+  (3, "Ambient"),
+  (4, "Chipstep"),
+  (5, "Dance"),
+  (6, "Drum N Bass"),
+  (7, "Dubstep"),
+  (8, "House"),
+  (9, "Industrial"),
+  (10, "New Wave"),
+  (11, "Synthwave"),
+  (12, "Techno"),
+  (13, "Trance"),
+  (14, "Video Game"),
+  (15, "Hip Hop - Modern"),
+  (16, "Hip Hop - Olskool"),
+  (17, "Nerdcore"),
+  (18, "R&B"),
+  (19, "Brit Pop"),
+  (20, "Classical Rock"),
+  (21, "General Rock"),
+  (22, "Grunge"),
+  (23, "Heavy Metal"),
+  (24, "Indie"),
+  (25, "Pop"),
+  (26, "Punk"),
+  (27, "Cinematic"),
+  (28, "Experimental"),
+  (29, "Funk"),
+  (30, "Fusion"),
+  (31, "Goth"),
+  (32, "Miscellaneous"),
+  (33, "Ska"),
+  (34, "World"),
+  (35, "Discussion"),
+  (36, "Music"),
+  (37, "Storytelling"),
+  (38, "Bluegrass"),
+  (39, "Blues"),
+  (40, "Country"),
+  (41, "A Capella"),
+  (42, "Comedy"),
+  (43, "Creepypasta"),
+  (44, "Drama"),
+  (45, "Informational"),
+  (46, "Spoken World"),
+  (47, "Voice Demo");
+
+CREATE TABLE IF NOT EXISTS Tracks (
+  id INTEGER PRIMARY KEY NOT NULL,
+  title STRING NOT NULL,
+  composer STRING NOT NULL,
+  score FLOAT DEFAULT -1,
+  genre INTEGER DEFAULT -1,
+  submission_date DATE NOT NULL,
+  url STRING NOT NULL,
+  tags STRING,
+  update_date DATE DEFAULT "2003/01/01",
+    FOREIGN KEY (genre) REFERENCES GenreType(id)
+);

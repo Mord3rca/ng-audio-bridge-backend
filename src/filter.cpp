@@ -6,7 +6,7 @@ filter::filter() :  m_minscore(0), m_maxscore(5),
   m_allowedgenre = {{
     genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
   
-    genre::AMBIENT, genre::CHIPSTEP, genre::DANCE, genre::DRUM_N_BASS, genre::DUPSTEP,
+    genre::AMBIENT, genre::CHIPSTEP, genre::DANCE, genre::DRUM_N_BASS, genre::DUBSTEP,
     genre::HOUSE, genre::INDUSTRIAL, genre::NEW_WAVE, genre::SYNTHWAVE, genre::TECHNO,
     genre::TRANCE, genre::VIDEO_GAME,
     

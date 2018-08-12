@@ -19,6 +19,8 @@ bool AudioDatabase::openDBFile( const std::string& filename, bool live )
   int err = live  ? sqlite3_open_v2( filename.c_str(), &m_handler, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nullptr)
                   : _loadDBInMemory(filename);
   
+  if( !live ) _createIndex();
+  
   return err == SQLITE_OK;
 }
 
@@ -103,6 +105,13 @@ int AudioDatabase::_loadDBInMemory( const std::string& filename )
   sqlite3_close_v2(dbFile);
   
   return err;
+}
+
+void AudioDatabase::_createIndex()
+{
+  std::string query = "CREATE INDEX Songs_index ON Songs(score, date, genre);";
+  
+  sqlite3_exec(m_handler, query.c_str(), nullptr, nullptr, nullptr);
 }
 
 AudioQueryResult::AudioQueryResult(){}

@@ -53,6 +53,7 @@ protected:
   
 private:
   int _loadDBInMemory( const std::string& );
+  void _createIndex();
   const std::string _create_query_from_filter( const filter&);
   sqlite3* m_handler;
 };

@@ -23,7 +23,7 @@ static std::map< enum genre, const std::string > _genreStr = {{
   {genre::CINEMATIC, "Cinematic"}, {genre::EXPERIMENTAL, "Experimental"},
   {genre::FUNK, "Funk"}, {genre::FUSION, "Fusion"}, {genre::GOTH, "Goth"},
   {genre::MISCELLANEOUS, "Miscellaneous"}, {genre::SKA, "Ska"},
-  {genre::WORLD, "world"},
+  {genre::WORLD, "World"},
   
   {genre::DISCUSSION, "Discussion"}, {genre::MUSIC, "Music"},
   {genre::STORYTELLING, "StoryTelling"},

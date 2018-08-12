@@ -26,7 +26,7 @@ bool AudioDatabase::openDBFile( const std::string& filename, bool live )
 
 const AudioQueryResult AudioDatabase::getSongByID( const unsigned int id )
 {
-  std::string query = "SELECT * FROM Songs WHERE Id = " + std::to_string(id) + ";";
+  std::string query = "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks WHERE id = " + std::to_string(id) + ";";
   AudioQueryResult rslt;
   sqlite3_exec(m_handler, query.c_str(), &AudioDatabase::sqlite3_callback, &rslt, NULL);
   
@@ -46,13 +46,13 @@ const AudioQueryResult AudioDatabase::getViaFilter( const filter &f)
 const std::string AudioDatabase::_create_query_from_filter( const filter &f )
 {
   std::ostringstream sql_query; std::vector<std::string> conditions;
-  sql_query << "SELECT * FROM Songs";
+  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
   
   if( f.getMinDate() != "2003/01/01" )
-    conditions.push_back( "(date >= \"" + f.getMinDate() + "\" AND date <= \"" + f.getMaxDate() +"\")");
+    conditions.push_back( "(submission_date BETWEEN \"" + f.getMinDate() + "\" AND \"" + f.getMaxDate() +"\")");
   
   if( f.getMinScore() != 0 || f.getMaxScore() != 5 )
-    conditions.push_back( "(score >= " + std::to_string(f.getMinScore()) + " AND score <= " + std::to_string(f.getMaxScore()) + " )");
+    conditions.push_back( "(score BETWEEN " + std::to_string( f.getMinScore() ) + " AND " + std::to_string( f.getMaxScore() ) + ")");
   
   if( f.getAllowedGenre().size() < 48 )
   {
@@ -109,7 +109,7 @@ int AudioDatabase::_loadDBInMemory( const std::string& filename )
 
 void AudioDatabase::_createIndex()
 {
-  std::string query = "CREATE INDEX Songs_index ON Songs(score, date, genre);";
+  std::string query = "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre);";
   
   sqlite3_exec(m_handler, query.c_str(), nullptr, nullptr, nullptr);
 }

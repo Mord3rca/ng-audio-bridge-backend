@@ -6,7 +6,7 @@ static std::map< enum genre, const std::string > _genreStr = {{
   
   {genre::AMBIENT, "Ambient"}, {genre::CHIPSTEP, "Chipstep"},
   {genre::DANCE, "Dance"}, {genre::DRUM_N_BASS, "Drum N Bass"},
-  {genre::DUPSTEP, "Dubstep"}, {genre::HOUSE, "House"},
+  {genre::DUBSTEP, "Dubstep"}, {genre::HOUSE, "House"},
   {genre::INDUSTRIAL, "Industrial"}, {genre::NEW_WAVE, "New Wave"},
   {genre::SYNTHWAVE, "Synthwave"}, {genre::TECHNO, "Techno"},
   {genre::TRANCE, "Trance"}, {genre::VIDEO_GAME, "Video Game"},
@@ -81,7 +81,7 @@ const std::string& genreToGroupStr(const enum genre& _g)
     case genre::CHIPSTEP:
     case genre::DANCE:
     case genre::DRUM_N_BASS:
-    case genre::DUPSTEP:
+    case genre::DUBSTEP:
     case genre::HOUSE:
     case genre::INDUSTRIAL:
     case genre::NEW_WAVE:
@@ -152,7 +152,7 @@ SongItem::SongItem(int argc, char **argv, char **azColumn) : SongItem()
   {
     std::string columnName = azColumn[count], value = (argv[count] != nullptr ? argv[count] : "");
     
-    if( columnName == "Id" )
+    if( columnName == "id" )
       m_id = std::stoul( value );
     else if( columnName == "title" )
       m_title = value;
@@ -160,10 +160,11 @@ SongItem::SongItem(int argc, char **argv, char **azColumn) : SongItem()
       m_composerName = value;
     else if( columnName == "score" )
       m_score = std::stof(value);
-    else if( columnName == "date" )
+    else if( columnName == "submission_date" )
       m_date = value;
     else if( columnName == "genre" )
-      m_genre = strToGenre(value);
+      //m_genre = strToGenre(value);
+      m_genre = static_cast<enum genre>( std::atoi(value.c_str()) );
     else if( columnName == "url" )
       m_path = value;
   }

@@ -10,10 +10,10 @@
 enum class genre
 {
   //Genre group: Easy Listening
-  CLASSICAL, JAZZ, SOLO_INSTRUMENT,
+  CLASSICAL = 0, JAZZ = 1, SOLO_INSTRUMENT = 2,
   
   //Genre group: Electronic
-  AMBIENT, CHIPSTEP, DANCE, DRUM_N_BASS, DUPSTEP,
+  AMBIENT, CHIPSTEP, DANCE, DRUM_N_BASS, DUBSTEP,
   HOUSE, INDUSTRIAL, NEW_WAVE, SYNTHWAVE, TECHNO,
   TRANCE, VIDEO_GAME,
   
@@ -38,7 +38,7 @@ enum class genre
   INFORMATIONAL, SPOKEN_WORLD, VOICE_DEMO,
   
   //Joker.
-  UNKNOWN
+  UNKNOWN = -1
 };
 
 const std::string& genreToStr(const enum genre&);

@@ -60,12 +60,12 @@ void filter::setViaAudioBridgeJson( const Json::Value& root )
       m_maxdate.replace(pos, 1, "/");
   }
   
-  if( root["genres"] != Json::Value::nullSingleton() )
+  if( root["genres"] != Json::Value::nullSingleton() && root["genres"].isArray() )
   {
     m_allowedgenre.clear();
     for( auto i : root["genres"] )
     {
-      enum genre gr = strToGenre(i.asString());
+      enum genre gr = strToGenre( i.asString() );
       m_allowedgenre.push_back( gr );
     }
   }

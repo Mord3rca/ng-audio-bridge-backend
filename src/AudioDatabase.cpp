@@ -64,7 +64,7 @@ const std::string AudioDatabase::_create_query_from_filter( const filter &f )
       std::string tmp = "genre IN (";
       for(size_t i = 0; i < genres.size(); i++)
       {
-        tmp += std::to_string( static_cast<int>(genres[0]) );
+        tmp += std::to_string( static_cast<int>(genres[i]) );
         if( i != genres.size() - 1 )
           tmp += ", ";
       }

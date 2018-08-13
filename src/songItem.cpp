@@ -64,6 +64,10 @@ const enum genre strToGenre( const std::string& s )
   //HEY ! Guess what ?! It's special case time !
   if( s == "R&amp;B" )
     return genre::R_B;
+  else if( s == "Voice Acting" )
+    return genre::VOICE_DEMO;
+  else if( s == "Latin" )
+    return genre::WORLD;
   
   return genre::UNKNOWN;
 }

@@ -24,6 +24,7 @@ public:
   const std::string& getGroupName() const noexcept;
   
   const std::string& getDBPath() const noexcept;
+  const bool         isLive() const noexcept;
   
   const int getListeningPort() const noexcept;
   const std::string& getListenIP() const noexcept;
@@ -32,7 +33,7 @@ private:
   void _parse(int, char**);
   
   bool m_isDaemon;
-  std::string m_db_path;
+  std::string m_db_path; bool m_live;
   std::string m_user, m_group;
   std::string m_ip; int m_port;
 };

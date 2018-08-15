@@ -47,7 +47,7 @@ static void create_objects_via_args(int argc, char **argv)
   cArg argument(argc, argv);
   
   db = new AudioDatabase();
-  if( !db->openDBFile(argument.getDBPath()) )
+  if( !db->openDBFile(argument.getDBPath(), argument.isLive()) )
   {
     std::cerr << "Can't open DB File. Exiting..." << std::endl;
     std::exit(-1);

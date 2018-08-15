@@ -1,20 +1,20 @@
 #include "args.hpp"
 
+static const char *short_option = static_cast<const char*>("hBu:g:d:ls:");
 static const struct option long_options[] = {
   {"help",      no_argument,        0, 'h'},
   {"deamonize", no_argument,        0, 'B'},
   {"user",      required_argument,  0, 'u'},
   {"group",     required_argument,  0, 'g'},
   {"dbpath",    required_argument,  0, 'd'},
+  {"live",      no_argument,        0, 'l'},
   {"socket",    required_argument,  0, 's'},
   {0, 0, 0, 0}
 };
 
-static const char *short_option = static_cast<const char*>("hBu:g:d:s:");
-
 void printHelp(std::ostream& out, const char* name) noexcept
 {
-  out << "Usage: " << (name != nullptr ? name : "ng-audio-bridge-backend") << " [options]" << std::endl << std::endl
+  out << "Usage: " << (name != nullptr ? name : "ng-audio-backend") << " [options]" << std::endl << std::endl
       << "Options:" << std::endl
       << "--help, -h" << std::endl
       << "\tPrint this help message." << std::endl
@@ -26,6 +26,8 @@ void printHelp(std::ostream& out, const char* name) noexcept
       << "\tRun this program as another group. (default: nobody)" << std::endl
       << "--dbpath, -d <filename>" << std::endl
       << "\tSet the path of the DB file to use." << std::endl
+      << "--live, -s" << std::endl
+      << "\tDo not copy DB in RAM (default: false)" << std::endl
       << "--socket, -s <ip4:socket>" << std::endl
       << "\tSet the listening socket. (default: 0.0.0.0:8080)" << std::endl;
       
@@ -42,6 +44,7 @@ cArg::cArg(int argc, char **argv)
   m_port  = 8080;
   
   m_db_path.clear();
+  m_live = false;
   
   _parse(argc, argv);
 }
@@ -124,6 +127,9 @@ const std::string& cArg::getDBPath() const noexcept
 {
   return m_db_path;
 }
+
+const bool cArg::isLive() const noexcept
+{return m_live;}
 
 const int cArg::getListeningPort() const noexcept
 {

@@ -1,6 +1,6 @@
 #include "HTTPServer.hpp"
 
-static std::map<http::status_code, const std::string> _stat_code_to_str = 
+static const std::map<const http::status_code, const std::string> _stat_code_to_str = 
 {{
   {http::status_code::OK, "HTTP/1.1 200 OK"},
   {http::status_code::MOVED_PERMANENTLY, "HTTP/1.1 301 Moved Permanently"},
@@ -144,7 +144,7 @@ http::Client& http::Client::send( const http::Response &resp)
 {
   std::ostringstream raw_data;
   
-  raw_data << _stat_code_to_str[ resp.m_code ] << "\r\n";
+  raw_data << _stat_code_to_str.find( resp.m_code )->second << "\r\n";
   
   for(auto i : resp.m_headers)
     raw_data << std::get<0>(i) << ": " << std::get<1>(i) << "\r\n";

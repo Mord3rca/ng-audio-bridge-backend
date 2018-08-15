@@ -11,7 +11,6 @@
 
 namespace http
 {
-  
   void unescape(std::string&);
   
   enum class method

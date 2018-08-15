@@ -22,7 +22,11 @@ public:
   void OnPost(http::Client&, const http::Request&) override;
   
 private:
-  bool _process(const http::Request&, std::string&);
+  void _audiobridge_sendCD  (http::Client&);
+  void _audiobridge_process (http::Client&, const http::Request&);
+  void _audiobridge_getmp3  (http::Client&, const http::Request&);
+  bool _audiobridge_JSONprocess(const http::Request&, std::string&);
+  
   AudioDatabase *m_db;
 };
 

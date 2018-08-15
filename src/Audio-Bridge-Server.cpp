@@ -17,101 +17,110 @@ AudioDatabase* AudioServer::getDBController()
 
 void AudioServer::OnPost( http::Client &client, const http::Request &req)
 {
-  http::Response resp;
   if( req.getUri() == "/Radio2/FilterBridge.php" )
-  {
-    std::string json_rslt;
-    if( _process(req, json_rslt) )
-    {
-      resp.setStatusCode(http::status_code::OK);
-      resp.addHeader("Content-Type", "application/json");
-      
-      resp.appendData("{\"ResultSet\":");
-      resp.appendData(json_rslt);
-      resp.appendData("}");
-      
-      std::cout << "Query Result: " << json_rslt << std::endl;
-    }
-    else
-    {
-      resp.setStatusCode(http::status_code::INTERNAL_SERVER_ERROR);
-      resp.appendData("Process Error");
-    }
-  }
+    _audiobridge_process(client, req);
   else
   {
+    http::Response resp;
     resp.setStatusCode(http::status_code::FORBIDDEN);
     resp.appendData("Wrong Post request");
+    client << resp;
   }
-  
-  client << resp;
 }
 
 void AudioServer::OnGet( http::Client &client, const http::Request &req)
 {
-  http::Response resp;
-  
   if( req.getUri() == "/crossdomain.xml" )
-  {
-    resp.setStatusCode(http::status_code::OK);
-    resp.addHeader("Content-Type", "text/xml");
-    
-    resp.appendData("<?xml version=\"1.0\"?>");
-    resp.appendData("<!DOCTYPE cross-domain-policy SYSTEM \"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd\">");
-    resp.appendData("<cross-domain-policy>");
-    resp.appendData("    <site-control permitted-cross-domain-policies=\"master-only\"/>");
-    resp.appendData("    <allow-access-from domain=\"*\" secure=\"false\"/>");
-    resp.appendData("    <allow-http-request-headers-from domain=\"*\" headers=\"*\"/>");
-    resp.appendData("</cross-domain-policy>");
-  }
+    _audiobridge_sendCD(client);
   else if( req.getUri().rfind(".mp3") != std::string::npos )
-  {
-    std::string num = req.getUri();
-    if( m_db )
-    {
-      std::string songid; std::string::size_type pos1, pos2;
-        pos1 = num.rfind('/') + 1;
-        pos2 = num.length() - 4;
-      songid = num.substr( pos1, pos2 - pos1);
-      
-      std::cout << "Looking for sond ID: " << songid << std::endl;
-      
-      AudioQueryResult rslt = m_db->getSongByID( std::atoi(songid.c_str()) );
-      
-      if( rslt.isEmpty() )
-      {
-        resp.setStatusCode(http::status_code::NOT_FOUND);
-        resp.addHeader("Content-Type", "text/html");
-        resp.appendData("Song not found in Index DB");
-      }
-      else
-      {
-        resp.setStatusCode(http::status_code::MOVED_PERMANENTLY);
-        resp.addHeader( "Location", rslt[0].getURL() );
-        client << resp;
-        http_close_request(client);
-        return;
-      }
-    }
-    else
-    {
-      resp.setStatusCode( http::status_code::INTERNAL_SERVER_ERROR );
-      resp.addHeader("Content-Type", "text/html");
-      resp.appendData("Song Index unavailable.");
-    }
-  }
+    _audiobridge_getmp3(client, req);
   else
   {
+    http::Response resp;
     resp.setStatusCode( http::status_code::NOT_FOUND );
     client << resp;
     http_close_request(client);
-    return;
+  }
+}
+
+void AudioServer::_audiobridge_process(http::Client &client, const http::Request &req)
+{
+  std::string json_rslt; http::Response resp;
+  if( _audiobridge_JSONprocess(req, json_rslt) )
+  {
+    resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Content-Type", "application/json");
+    
+    resp.appendData("{\"ResultSet\":");
+    resp.appendData(json_rslt);
+    resp.appendData("}");
+    
+    std::cout << "Query Result: " << json_rslt << std::endl;
+  }
+  else
+  {
+    resp.setStatusCode(http::status_code::INTERNAL_SERVER_ERROR);
+    resp.appendData("Process Error");
   }
   
   client << resp;
 }
 
-bool AudioServer::_process(const http::Request &req, std::string &result)
+void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request &req)
+{
+  std::string num = req.getUri(); http::Response resp;
+  if( m_db )
+  {
+    std::string songid; std::string::size_type pos1, pos2;
+      pos1 = num.rfind('/') + 1;
+      pos2 = num.length() - 4;
+    songid = num.substr( pos1, pos2 - pos1);
+    
+    std::cout << "Looking for sond ID: " << songid << std::endl;
+    
+    AudioQueryResult rslt = m_db->getSongByID( std::atoi(songid.c_str()) );
+    
+    if( rslt.isEmpty() )
+    {
+      resp.setStatusCode(http::status_code::NOT_FOUND);
+      resp.addHeader("Content-Type", "text/html");
+      resp.appendData("Song not found in Index DB");
+    }
+    else
+    {
+      resp.setStatusCode(http::status_code::MOVED_PERMANENTLY);
+      resp.addHeader( "Location", rslt[0].getURL() );
+      client << resp;
+      http_close_request(client);
+      return;
+    }
+  }
+  else
+  {
+    resp.setStatusCode( http::status_code::INTERNAL_SERVER_ERROR );
+    resp.addHeader("Content-Type", "text/html");
+    resp.appendData("Song Index unavailable.");
+  }
+}
+
+void AudioServer::_audiobridge_sendCD(http::Client &client)
+{
+  http::Response resp;
+  resp.setStatusCode(http::status_code::OK);
+  resp.addHeader("Content-Type", "text/xml");
+  
+  resp.appendData("<?xml version=\"1.0\"?>");
+  resp.appendData("<!DOCTYPE cross-domain-policy SYSTEM \"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd\">");
+  resp.appendData("<cross-domain-policy>");
+  resp.appendData("    <site-control permitted-cross-domain-policies=\"master-only\"/>");
+  resp.appendData("    <allow-access-from domain=\"*\" secure=\"false\"/>");
+  resp.appendData("    <allow-http-request-headers-from domain=\"*\" headers=\"*\"/>");
+  resp.appendData("</cross-domain-policy>");
+  
+  client << resp;
+}
+
+bool AudioServer::_audiobridge_JSONprocess(const http::Request &req, std::string &result)
 {
   Json::CharReaderBuilder builder; Json::Value root;
   std::string jsonstr = req.getData().substr(11); //Removing filterJSON=

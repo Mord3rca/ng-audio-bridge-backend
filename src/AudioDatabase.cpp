@@ -1,12 +1,14 @@
 #include "AudioDatabase.hpp"
 
-AudioDatabase::AudioDatabase() : m_handler(nullptr)
+AudioDatabase::AudioDatabase() : m_handler(nullptr), m_path("")
 {}
 
 AudioDatabase::AudioDatabase( const std::string& filename )
 {
   if( !openDBFile(filename))
     throw std::runtime_error( "Can't open sqlite3 DB."  );
+  
+  m_path = filename;
 }
 
 AudioDatabase::~AudioDatabase()
@@ -22,6 +24,13 @@ bool AudioDatabase::openDBFile( const std::string& filename, bool live )
   if( !live ) _createIndex();
   
   return err == SQLITE_OK;
+}
+
+void AudioDatabase::reload()
+{
+  if( m_handler ) sqlite3_close_v2(m_handler);
+  
+  this->openDBFile(m_path);
 }
 
 const AudioQueryResult AudioDatabase::getSongByID( const unsigned int id )
@@ -124,9 +133,8 @@ int AudioDatabase::_loadDBInMemory( const std::string& filename )
 
 void AudioDatabase::_createIndex()
 {
-  std::string query = "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre);";
-  
-  sqlite3_exec(m_handler, query.c_str(), nullptr, nullptr, nullptr);
+  sqlite3_exec( m_handler, "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre);",
+                nullptr, nullptr, nullptr);
 }
 
 AudioQueryResult::AudioQueryResult(){}

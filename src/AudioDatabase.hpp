@@ -42,6 +42,7 @@ public:
   ~AudioDatabase();
   
   bool openDBFile(const std::string&, bool = false );
+  void reload();
   
   const AudioQueryResult getSongByID( const unsigned int );
   const AudioQueryResult getSongsByName( const std::string&, size_t& );
@@ -55,7 +56,7 @@ private:
   int _loadDBInMemory( const std::string& );
   void _createIndex();
   const std::string _create_query_from_filter( const filter&);
-  sqlite3* m_handler;
+  sqlite3* m_handler; std::string m_path;
 };
 
 #endif //AUDIO_DATABASE_HPP

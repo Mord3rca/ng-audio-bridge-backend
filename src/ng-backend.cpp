@@ -12,14 +12,8 @@ extern "C"
 #include "Audio-Bridge-Server.hpp"
 #include "AudioDatabase.hpp"
 
-cArg *argument = nullptr;
-AudioServer *Server = nullptr;
-
-static void daemonize(void)
-{
-  daemon(0, 0);
-  chdir("/");
-}
+AudioServer   *Server = nullptr;
+AudioDatabase *db     = nullptr;
 
 //You really have to check your privilege !
 static void drop_privilege(const char* user, const char* group)
@@ -38,43 +32,52 @@ static void signal_handler( int sig )
       std::cout << "Server stopped..." << std::endl;
       break;
     
+    case SIGUSR1:
+      if(db)
+        db->reload();
+      std::cout << "[+] Database reloaded" << std::endl;
+      break;
+    
     default:;
+  }
+}
+
+static void create_objects_via_args(int argc, char **argv)
+{
+  cArg argument(argc, argv);
+  
+  db = new AudioDatabase();
+  if( !db->openDBFile(argument.getDBPath()) )
+  {
+    std::cerr << "Can't open DB File. Exiting..." << std::endl;
+    std::exit(-1);
+  }
+  
+  Server = new AudioServer( argument.getListenIP(),
+                            argument.getListeningPort());
+  Server->setDBController(db);
+  
+  std::cout << "Server listenning on " << argument.getListenIP() << ":" << argument.getListeningPort() << std::endl;
+  
+  if( argument.daemonize() )
+  {
+    daemon(0, 0);
+    drop_privilege( argument.getUserName().c_str(),
+                    argument.getGroupName().c_str() );
   }
 }
 
 int main( int argc, char *argv[] )
 {
-  AudioDatabase *db = nullptr;
-  argument = new cArg(argc, argv);
-  
-  if( argument->daemonize() )
-    daemonize();
-  
   signal(SIGINT, signal_handler);
   
-  db = new AudioDatabase();
-  if( !db->openDBFile(argument->getDBPath()) )
-  {
-    std::cerr << "Can't open DB File. Exiting..." << std::endl;
-    return -1;
-  }
+  create_objects_via_args(argc, argv);
   
-  std::cout << "Starting up..." << std::endl;
-  Server = new AudioServer( argument->getListenIP(),
-                            argument->getListeningPort());
-  
-  Server->setDBController(db);
-  
-  drop_privilege( argument->getUserName().c_str(),
-                  argument->getGroupName().c_str() );
-  
-  delete argument; //No longer needed.
-  
+  std::cout << "Entering server loop..." << std::endl;
   Server->serve();
   
   delete Server;
   delete db;
-  
   
   return 0;
 }

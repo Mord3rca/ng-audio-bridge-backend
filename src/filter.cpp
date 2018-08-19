@@ -3,7 +3,7 @@
 filter::filter() :  m_minscore(0), m_maxscore(5),
                     m_mindate("2003/01/01")
 {
-  m_allowedgenre = {{
+  m_allowedgenre = {
     genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
   
     genre::AMBIENT, genre::CHIPSTEP, genre::DANCE, genre::DRUM_N_BASS, genre::DUBSTEP,
@@ -24,7 +24,7 @@ filter::filter() :  m_minscore(0), m_maxscore(5),
     
     genre::A_CAPELLA, genre::COMEDY, genre::CREEPYPASTA, genre::DRAMA,
     genre::INFORMATIONAL, genre::SPOKEN_WORLD, genre::VOICE_DEMO
-  }};
+  };
 }
 
 filter::filter( const Json::Value& root ) : filter()
@@ -65,11 +65,8 @@ void filter::setViaAudioBridgeJson( const Json::Value& root )
     m_allowedgenre.clear();
     for( auto i : root["genres"] )
     {
-      std::string _g = i.asString(); std::string::size_type t;
-      
+      std::string _g = i.asString();
       http::unescape(_g);
-      while( ( t = _g.find('+') ) != std::string::npos )
-        _g.replace(t, 1, " ");
       
       enum genre gr = strToGenre( _g );
       m_allowedgenre.push_back( gr );

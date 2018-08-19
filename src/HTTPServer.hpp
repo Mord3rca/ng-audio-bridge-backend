@@ -33,11 +33,17 @@ namespace http
     Request() : m_method(method::UNKNOWN), m_datalen(0), m_isHeaderComplete(false)
     {}
     
-    const std::string   getUri() const noexcept
+    const std::string   getPath() const noexcept
     {return m_uri;}
     
     const http::method  getMethod() const noexcept
     {return m_method;}
+    
+    const std::string   getVariable(const std::string &name) const noexcept
+    {
+      auto i = m_vars.find(name);
+      return (i != m_vars.end() ? i->second : "" );
+    }
     
     const std::string   getHeader(const std::string &name) const noexcept
     {
@@ -63,7 +69,7 @@ namespace http
     {return m_datalen;}
     
   private:
-    std::map<std::string, std::string> m_headers, m_cookies;
+    std::map<std::string, std::string> m_headers, m_cookies, m_vars;
     std::string m_uri, m_data;
     http::method m_method;
     
@@ -143,6 +149,7 @@ namespace http
     
     bool isComplete() const noexcept;
   private:
+    void _decodeVariable();
     Request* m_target;
   };
 }

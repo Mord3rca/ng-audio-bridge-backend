@@ -248,12 +248,53 @@ void http::Parser::write( const char *buff, const ssize_t len )
     }
     else
     {
-      if( this->isComplete() ) break;
+      if( this->isComplete() ) { _decodeVariable(); break;}
       
       m_target->m_data += stream.str().substr( stream.tellg() );
       break;
     }
   }
+}
+
+void http::Parser::_decodeVariable()
+{
+  std::string data;
+  switch( m_target->m_method )
+  {
+    case http::method::GET:
+      {
+        auto t = m_target->m_uri.find('?');
+        if( t != std::string::npos )
+        {
+          data = m_target->m_uri.substr(t+1);
+          m_target->m_uri = m_target->m_uri.substr(0, t);
+        }
+        else
+          return;
+      }
+      break;
+    case http::method::POST:
+      data = m_target->m_data;
+      break;
+    default: return;
+  }
+  
+  std::istringstream stream(data);
+  do
+  {
+    std::string line, key, value; std::string::size_type p;
+    std::getline( stream, line, '&' );
+    
+    p = line.find("=");
+    if( p != std::string::npos )
+    {
+      key = line.substr(0, p);
+      value = line.substr(p+1);
+      
+      m_target->m_vars[key] = value;
+    }
+    
+  } while( stream.good() && !stream.eof() );
 }
 
 void http::unescape( std::string &str)

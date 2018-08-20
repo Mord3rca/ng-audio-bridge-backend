@@ -47,19 +47,13 @@ namespace http
     
     const std::string   getHeader(const std::string &name) const noexcept
     {
-      for(auto i : m_headers)
-        if( std::get<0>(i) == name )
-          return std::get<1>(i);
-      
-      return "";
+      auto i = m_headers.find(name);
+      return (i != m_headers.end() ? i->second : "");
     }
     const std::string   getCookie(const std::string &name) const noexcept
     {
-      for(auto i : m_cookies)
-        if( std::get<0>(i) == name )
-          return std::get<1>(i);
-      
-      return "";
+      auto i = m_cookies.find(name);
+      return (i != m_cookies.end() ? i->second : "");
     }
     
     const std::string& getData() const noexcept

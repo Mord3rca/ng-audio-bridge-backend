@@ -248,12 +248,14 @@ void http::Parser::write( const char *buff, const ssize_t len )
     }
     else
     {
-      if( this->isComplete() ) { _decodeVariable(); break;}
+      if( this->isComplete() ) break;
       
       m_target->m_data += stream.str().substr( stream.tellg() );
       break;
     }
   }
+  
+  if( this->isComplete() ) _decodeVariable();
 }
 
 void http::Parser::_decodeVariable()
@@ -288,8 +290,8 @@ void http::Parser::_decodeVariable()
     p = line.find("=");
     if( p != std::string::npos )
     {
-      key = line.substr(0, p);
-      value = line.substr(p+1);
+      key = line.substr(0, p);  http::unescape(key);
+      value = line.substr(p+1); http::unescape(value);
       
       m_target->m_vars[key] = value;
     }

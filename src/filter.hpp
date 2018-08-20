@@ -24,6 +24,7 @@ public:
 
 class AudioBridgeFilter : public IFilter
 {
+  static const std::regex m_regdate;
 public:
   AudioBridgeFilter();
   ~AudioBridgeFilter();

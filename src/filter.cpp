@@ -1,5 +1,7 @@
 #include "filter.hpp"
 
+const std::regex AudioBridgeFilter::m_regdate("[0-9]{4}/[0-9]{2}/[0-9]{2}");
+
 static std::vector<enum genre> default_allowed_genre = {
   genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
   
@@ -88,11 +90,10 @@ void AudioBridgeFilter::set( const http::Request &req )
 
 bool AudioBridgeFilter::validate() const noexcept
 {
-  static std::regex reg_date("[0-9]{4}/[0-9]{2}/[0-9]{2}");
-  if( !std::regex_match(m_mindate, reg_date) ) return false;
+  if( !std::regex_match(m_mindate, m_regdate) ) return false;
   
   if( !m_maxdate.empty() )
-    if( !std::regex_match(m_maxdate, reg_date) ) return false;
+    if( !std::regex_match(m_maxdate, m_regdate) ) return false;
   
   return true;
 }

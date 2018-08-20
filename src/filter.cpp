@@ -1,6 +1,6 @@
 #include "filter.hpp"
 
-const std::regex AudioBridgeFilter::m_regdate("[0-9]{4}/[0-9]{2}/[0-9]{2}");
+const std::regex AudioBridgeFilter::m_regdate("^\\d{4}/\\d{2}/\\d{2}$");
 
 static std::vector<enum genre> default_allowed_genre = {
   genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,

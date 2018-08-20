@@ -9,6 +9,7 @@
 
 class AudioServer : public http::Server
 {
+  static const std::string m_crossdomain;
 public:
   AudioServer();
   AudioServer(const std::string&, const unsigned int);
@@ -23,7 +24,6 @@ public:
   
 protected:
   //Old API compatibility
-  void _audiobridge_sendCD  (http::Client&);
   void _audiobridge_process (http::Client&, const http::Request&);
   void _audiobridge_getmp3  (http::Client&, const http::Request&);
   bool _audiobridge_JSONprocess(const http::Request&, std::string&);

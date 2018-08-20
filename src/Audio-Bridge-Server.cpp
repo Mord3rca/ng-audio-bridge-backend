@@ -1,5 +1,14 @@
 #include "Audio-Bridge-Server.hpp"
 
+const std::string AudioServer::m_crossdomain =
+"<?xml version=\"1.0\"?>\
+<!DOCTYPE cross-domain-policy SYSTEM \"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd\">\
+<cross-domain-policy>\
+    <site-control permitted-cross-domain-policies=\"master-only\"/>\
+    <allow-access-from domain=\"*\" secure=\"false\"/>\
+    <allow-http-request-headers-from domain=\"*\" headers=\"*\"/>\
+</cross-domain-policy>";
+
 AudioServer::AudioServer() : m_db(nullptr)
 {}
 
@@ -36,13 +45,20 @@ void AudioServer::OnPost( http::Client &client, const http::Request &req)
 
 void AudioServer::OnGet( http::Client &client, const http::Request &req)
 {
+  http::Response resp;
   if( req.getPath() == "/crossdomain.xml" )
-    _audiobridge_sendCD(client);
+  {
+    resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Content-Type", "text/xml");
+    
+    resp.appendData(m_crossdomain);
+    
+    client << resp;
+  }
   else if( req.getPath().rfind(".mp3") != std::string::npos )
     _audiobridge_getmp3(client, req);
   else
   {
-    http::Response resp;
     resp.setStatusCode( http::status_code::NOT_FOUND );
     client << resp;
   }
@@ -99,7 +115,6 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
       resp.setStatusCode(http::status_code::MOVED_PERMANENTLY);
       resp.addHeader( "Location", rslt[0].getURL() );
       client << resp;
-      return;
     }
   }
   else
@@ -108,23 +123,6 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
     resp.addHeader("Content-Type", "text/html");
     resp.appendData("Song Index unavailable.");
   }
-}
-
-void AudioServer::_audiobridge_sendCD(http::Client &client)
-{
-  http::Response resp;
-  resp.setStatusCode(http::status_code::OK);
-  resp.addHeader("Content-Type", "text/xml");
-  
-  resp.appendData("<?xml version=\"1.0\"?>");
-  resp.appendData("<!DOCTYPE cross-domain-policy SYSTEM \"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd\">");
-  resp.appendData("<cross-domain-policy>");
-  resp.appendData("    <site-control permitted-cross-domain-policies=\"master-only\"/>");
-  resp.appendData("    <allow-access-from domain=\"*\" secure=\"false\"/>");
-  resp.appendData("    <allow-http-request-headers-from domain=\"*\" headers=\"*\"/>");
-  resp.appendData("</cross-domain-policy>");
-  
-  client << resp;
 }
 
 bool AudioServer::_audiobridge_JSONprocess(const http::Request &req, std::string &result)

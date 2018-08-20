@@ -47,7 +47,7 @@ public:
   const AudioQueryResult getSongByID( const unsigned int );
   const AudioQueryResult getSongsByName( const std::string&, size_t& );
   
-  const AudioQueryResult getViaFilter( const filter& );
+  const AudioQueryResult getViaFilter( const IFilter& );
 
 protected:
   static int sqlite3_callback( void*, int, char**, char** );
@@ -55,7 +55,7 @@ protected:
 private:
   int _loadDBInMemory( const std::string& );
   void _createIndex();
-  const std::string _create_query_from_filter( const filter&);
+  //const std::string _create_query_from_filter( const filter&);
   sqlite3* m_handler; std::string m_path;
 };
 

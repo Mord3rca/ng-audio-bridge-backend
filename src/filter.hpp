@@ -1,36 +1,38 @@
 #ifndef FILTER_HPP
 #define FILTER_HPP
 
+#include <regex>
 #include <string>
 #include <sstream>
 
 #include <json/json.h>
 
 #include "songItem.hpp"
-#include "HTTPServer.hpp" //http::unescape
+#include "HTTPServer.hpp" //http::Request
 
-class filter
+class IFilter
 {
 public:
-  filter();
-  filter( const Json::Value& );
-  ~filter();
+  IFilter(){}
+  ~IFilter(){}
   
-  void setViaAudioBridgeJson( const Json::Value& );
+  virtual void set(const http::Request&) = 0;
+  virtual bool validate() const noexcept = 0;
   
-  const float getMinScore() const noexcept
-  { return m_minscore; }
-  const float getMaxScore() const noexcept
-  { return m_maxscore; }
+  virtual const std::string getQuery() const noexcept = 0;
+};
+
+class AudioBridgeFilter : public IFilter
+{
+public:
+  AudioBridgeFilter();
+  ~AudioBridgeFilter();
   
-  const std::string& getMinDate() const noexcept
-  { return m_mindate; }
-  const std::string& getMaxDate() const noexcept
-  { return m_maxdate; }
+  void set(const http::Request&);
+  bool validate() const noexcept;
   
-  const std::vector<enum genre>& getAllowedGenre() const noexcept
-  {return m_allowedgenre; }
-  
+  const std::string getQuery() const noexcept;
+
 private:
   float m_minscore, m_maxscore;
   std::string m_mindate, m_maxdate;

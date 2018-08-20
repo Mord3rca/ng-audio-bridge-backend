@@ -42,9 +42,9 @@ const AudioQueryResult AudioDatabase::getSongByID( const unsigned int id )
   return rslt;
 }
 
-const AudioQueryResult AudioDatabase::getViaFilter( const filter &f)
+const AudioQueryResult AudioDatabase::getViaFilter( const IFilter &f )
 {
-  std::string query = _create_query_from_filter(f);
+  std::string query = f.getQuery();
   
   AudioQueryResult rslt;
   sqlite3_exec(m_handler, query.c_str(), &AudioDatabase::sqlite3_callback, &rslt, NULL);
@@ -52,7 +52,8 @@ const AudioQueryResult AudioDatabase::getViaFilter( const filter &f)
   return rslt;
 }
 
-const std::string AudioDatabase::_create_query_from_filter( const filter &f )
+/*
+const std::string AudioDatabase::_create_query_from_filter( const IFilter &f )
 {
   std::ostringstream sql_query; std::vector<std::string> conditions;
   sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
@@ -99,6 +100,7 @@ const std::string AudioDatabase::_create_query_from_filter( const filter &f )
   
   return sql_query.str();
 }
+*/
 
 int AudioDatabase::sqlite3_callback(void* data, int argc, char **argv, char **azColumn)
 {

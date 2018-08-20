@@ -21,12 +21,23 @@ public:
   void OnGet(http::Client&, const http::Request&) override;
   void OnPost(http::Client&, const http::Request&) override;
   
-private:
+protected:
+  //Old API compatibility
   void _audiobridge_sendCD  (http::Client&);
   void _audiobridge_process (http::Client&, const http::Request&);
   void _audiobridge_getmp3  (http::Client&, const http::Request&);
   bool _audiobridge_JSONprocess(const http::Request&, std::string&);
   
+  //New API Block
+  //POST REQUEST
+  void _api_filter(http::Client&, const http::Request&);
+  void _api_filter_composer(http::Client&, const http::Request&);
+  
+  //GET Request
+  void _api_track_id(http::Client&, const http::Request&);
+  void _api_genrelist(http::Client&, const http::Request&);
+  
+private:
   AudioDatabase *m_db;
 };
 

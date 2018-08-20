@@ -17,8 +17,14 @@ AudioDatabase* AudioServer::getDBController()
 
 void AudioServer::OnPost( http::Client &client, const http::Request &req)
 {
-  if( req.getUri() == "/Radio2/FilterBridge.php" )
+  auto request = req.getPath();
+  
+  if( request == "/Radio2/FilterBridge.php" )
     _audiobridge_process(client, req);
+  else if( request == "/api/filter/" )
+    _api_filter( client, req );
+  else if( request == "/api/filter/composer" )
+    ;//_api_filter_composer( client, req );
   else
   {
     http::Response resp;
@@ -30,36 +36,38 @@ void AudioServer::OnPost( http::Client &client, const http::Request &req)
 
 void AudioServer::OnGet( http::Client &client, const http::Request &req)
 {
-  if( req.getUri() == "/crossdomain.xml" )
+  if( req.getPath() == "/crossdomain.xml" )
     _audiobridge_sendCD(client);
-  else if( req.getUri().rfind(".mp3") != std::string::npos )
+  else if( req.getPath().rfind(".mp3") != std::string::npos )
     _audiobridge_getmp3(client, req);
   else
   {
     http::Response resp;
     resp.setStatusCode( http::status_code::NOT_FOUND );
     client << resp;
-    http_close_request(client);
   }
 }
 
 void AudioServer::_audiobridge_process(http::Client &client, const http::Request &req)
 {
-  std::string json_rslt; http::Response resp;
-  if( _audiobridge_JSONprocess(req, json_rslt) )
+  http::Response resp; AudioBridgeFilter filter;
+  filter.set(req);
+  
+  if( filter.validate() )
   {
+    AudioQueryResult rslt = m_db->getViaFilter(filter);
+    
     resp.setStatusCode(http::status_code::OK);
     resp.addHeader("Content-Type", "application/json");
     
     resp.appendData("{\"ResultSet\":");
-    resp.appendData(json_rslt);
+    resp.appendData(rslt.toJson());
     resp.appendData("}");
-    
-    std::cout << "Query Result: " << json_rslt << std::endl;
   }
   else
   {
     resp.setStatusCode(http::status_code::INTERNAL_SERVER_ERROR);
+    resp.addHeader("Content-Type", "text/plain");
     resp.appendData("Process Error");
   }
   
@@ -68,7 +76,7 @@ void AudioServer::_audiobridge_process(http::Client &client, const http::Request
 
 void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request &req)
 {
-  std::string num = req.getUri(); http::Response resp;
+  std::string num = req.getPath(); http::Response resp;
   if( m_db )
   {
     std::string songid; std::string::size_type pos1, pos2;
@@ -91,7 +99,6 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
       resp.setStatusCode(http::status_code::MOVED_PERMANENTLY);
       resp.addHeader( "Location", rslt[0].getURL() );
       client << resp;
-      http_close_request(client);
       return;
     }
   }
@@ -122,25 +129,17 @@ void AudioServer::_audiobridge_sendCD(http::Client &client)
 
 bool AudioServer::_audiobridge_JSONprocess(const http::Request &req, std::string &result)
 {
-  Json::CharReaderBuilder builder; Json::Value root;
-  std::string jsonstr = req.getData().substr(11); //Removing filterJSON=
-  http::unescape(jsonstr);
-
-  Json::CharReader *json_read = builder.newCharReader();
-  std::string err;
-
-  if( !json_read->parse( jsonstr.c_str(), jsonstr.c_str() + jsonstr.length() , &root, &err) )
-  {
-    delete json_read;
-    return false;
-  }
+  AudioBridgeFilter filter; filter.set(req);
   
-  delete json_read;
+  if( !filter.validate() ) return false;
   
-  filter filt(root);
-  
-  AudioQueryResult rslt = m_db->getViaFilter(filt);
+  AudioQueryResult rslt = m_db->getViaFilter(filter);
   result = rslt.toJson();
   
   return true;
+}
+
+void AudioServer::_api_filter(http::Client &client, const http::Request &req)
+{
+  
 }

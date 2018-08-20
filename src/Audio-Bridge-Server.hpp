@@ -26,7 +26,6 @@ protected:
   //Old API compatibility
   void _audiobridge_process (http::Client&, const http::Request&);
   void _audiobridge_getmp3  (http::Client&, const http::Request&);
-  bool _audiobridge_JSONprocess(const http::Request&, std::string&);
   
   //New API Block
   //POST REQUEST

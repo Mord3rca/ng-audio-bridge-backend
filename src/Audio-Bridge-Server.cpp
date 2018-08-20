@@ -125,18 +125,6 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
   }
 }
 
-bool AudioServer::_audiobridge_JSONprocess(const http::Request &req, std::string &result)
-{
-  AudioBridgeFilter filter; filter.set(req);
-  
-  if( !filter.validate() ) return false;
-  
-  AudioQueryResult rslt = m_db->getViaFilter(filter);
-  result = rslt.toJson();
-  
-  return true;
-}
-
 void AudioServer::_api_filter(http::Client &client, const http::Request &req)
 {
   

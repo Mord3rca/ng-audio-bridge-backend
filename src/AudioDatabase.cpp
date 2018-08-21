@@ -52,56 +52,6 @@ const AudioQueryResult AudioDatabase::getViaFilter( const IFilter &f )
   return rslt;
 }
 
-/*
-const std::string AudioDatabase::_create_query_from_filter( const IFilter &f )
-{
-  std::ostringstream sql_query; std::vector<std::string> conditions;
-  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
-  
-  if( f.getMinDate() != "2003/01/01" )
-    conditions.push_back( "(submission_date BETWEEN \"" + f.getMinDate() + "\" AND \"" + f.getMaxDate() +"\")");
-  
-  if( f.getMinScore() != 0 || f.getMaxScore() != 5 )
-    conditions.push_back( "(score BETWEEN " + std::to_string( f.getMinScore() ) + " AND " + std::to_string( f.getMaxScore() ) + ")");
-  
-  if( f.getAllowedGenre().size() < 48 )
-  {
-    auto genres = f.getAllowedGenre();
-    if( genres.size() == 1 )
-      conditions.push_back("genre=" + std::to_string( static_cast<int>(genres[0]) ));
-    else
-    {
-      std::string tmp = "genre IN (";
-      for(size_t i = 0; i < genres.size(); i++)
-      {
-        tmp += std::to_string( static_cast<int>(genres[i]) );
-        if( i != genres.size() - 1 )
-          tmp += ", ";
-      }
-      tmp+=')';
-      conditions.push_back(tmp);
-    }
-        
-  }
-  
-  if( !conditions.empty() )
-    sql_query << " WHERE ";
-  
-  for(unsigned int i = 0; i < conditions.size(); i++)
-  {
-    sql_query << conditions[i];
-    if( i != conditions.size() -1)
-      sql_query << " AND ";
-  }
-  
-  sql_query << " ORDER BY RANDOM() LIMIT 25;";
-  
-  //std::cout << "Executed query: " << sql_query.str() << std::endl;
-  
-  return sql_query.str();
-}
-*/
-
 int AudioDatabase::sqlite3_callback(void* data, int argc, char **argv, char **azColumn)
 {
   AudioQueryResult *obj = static_cast<AudioQueryResult*>(data);

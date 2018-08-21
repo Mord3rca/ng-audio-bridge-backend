@@ -85,7 +85,7 @@ int AudioDatabase::_loadDBInMemory( const std::string& filename )
 
 void AudioDatabase::_createIndex()
 {
-  sqlite3_exec( m_handler, "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre);",
+  sqlite3_exec( m_handler, "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre, composer);",
                 nullptr, nullptr, nullptr);
 }
 
@@ -97,6 +97,18 @@ AudioQueryResult::~AudioQueryResult()
     delete i;
 }
 
+static const std::string JSONSafe( const std::string &e)
+{
+  std::string result = e; std::string::size_type pos = 0;
+  if( result[0] == '"' )
+    result.replace(0,1,"\\\"");
+    
+  while( ( pos = result.find("\"", pos+2 ) ) != std::string::npos )
+    result.replace(pos, pos+1, "\\\"");
+  
+  return result;
+}
+
 const std::string AudioQueryResult::toJson() const
 {
   std::ostringstream rslt;
@@ -106,8 +118,8 @@ const std::string AudioQueryResult::toJson() const
   {
     const SongItem *snd = m_songs[i];
     rslt  << "{\"id\":" << snd->getId()
-          << ",\"composer\":\"" << snd->getComposerName() << "\""
-          << ",\"title\":\"" << snd->getSongName() << "\""
+          << ",\"composer\":\"" << JSONSafe( snd->getComposerName() ) << "\""
+          << ",\"title\":\"" << JSONSafe( snd->getSongName() ) << "\""
           << ",\"score\":" << snd->getScore()
           << ",\"genre\":\"" << genreToStr( snd->getGenre() ) << "\""
           << ",\"date\":\"" << snd->getSubmissionDate() << "\"}";

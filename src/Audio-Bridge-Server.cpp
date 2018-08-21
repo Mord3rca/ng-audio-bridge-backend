@@ -54,8 +54,10 @@ void AudioServer::OnGet( http::Client &client, const http::Request &req)
     _audiobridge_getmp3(client, req);
   else if( req.getPath().find("/api/track/") != std::string::npos )
     _api_track_id(client, req);
-  else if( req.getPath().find("/api/version") != std::string::npos )
+  else if( req.getPath() == "/api/version" )
     _api_version(client);
+  else if( req.getPath() == "/api/genres" )
+    _api_genrelist(client, req);
   else
     client << http::genericAnswer[ 1 ]; //Not Found.
 }
@@ -118,7 +120,22 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
 //POST
 void AudioServer::_api_filter(http::Client &client, const http::Request &req)
 {
+  APIFilter filter; filter.set(req);
   
+  if( filter.validate() )
+  {
+    AudioQueryResult rslt = m_db->getViaFilter(filter);
+    
+    http::Response resp; resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Content-Type","application/json");
+    resp.appendData("{\"Tracks\":");
+    resp.appendData( rslt.toJson() );
+    resp.appendData("}");
+    
+    client << resp;
+  }
+  else
+    client << http::genericAnswer[3];
 }
 
 //GET
@@ -162,4 +179,16 @@ void AudioServer::_api_track_id(http::Client &client, const http::Request &req)
     resp.addHeader("Location", rslt[0].getURL() );
     client << resp;
   }
+}
+
+void AudioServer::_api_genrelist(http::Client &client, const http::Request &req)
+{
+  http::Response resp;
+  resp.setStatusCode(http::status_code::OK);
+  resp.addHeader("Content-Type","text/plain");
+  if( req.isVarExist("json") )
+    resp.appendData("Will be sent in JSON Format");
+  else
+    resp.appendData("Will be sent in TXT Format");
+  client << resp;
 }

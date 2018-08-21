@@ -1,7 +1,5 @@
 #include "filter.hpp"
 
-const std::regex AudioBridgeFilter::m_regdate("^\\d{4}/\\d{2}/\\d{2}$");
-
 static std::vector<enum genre> default_allowed_genre = {
   genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
   
@@ -90,10 +88,10 @@ void AudioBridgeFilter::set( const http::Request &req )
 
 bool AudioBridgeFilter::validate() const noexcept
 {
-  if( !std::regex_match(m_mindate, m_regdate) ) return false;
+  if( !std::regex_match(m_mindate, regdate) ) return false;
   
   if( !m_maxdate.empty() )
-    if( !std::regex_match(m_maxdate, m_regdate) ) return false;
+    if( !std::regex_match(m_maxdate, regdate) ) return false;
   
   return true;
 }
@@ -125,7 +123,6 @@ const std::string AudioBridgeFilter::getQuery() const noexcept
       tmp+=')';
       conditions.push_back(tmp);
     }
-        
   }
   
   if( !conditions.empty() )
@@ -141,6 +138,128 @@ const std::string AudioBridgeFilter::getQuery() const noexcept
   sql_query << " ORDER BY RANDOM() LIMIT 25;";
   
   //std::cout << "Executed query: " << sql_query.str() << std::endl;
+  
+  return sql_query.str();
+}
+
+APIFilter::APIFilter() :  m_mindate("2003/01/01"), m_maxdate(""),
+                          m_minscore(0), m_maxscore(5),
+                          m_allowUnrated(true)
+{
+  m_allowedgenre = default_allowed_genre;
+}
+
+APIFilter::~APIFilter(){}
+
+void APIFilter::set(const http::Request &req)
+{
+  if( req.isVarExist("minDate") )
+    m_mindate = req.getVariable("minDate");
+  
+  if( req.isVarExist("maxDate") )
+    m_maxdate = req.getVariable("maxDate");
+  
+  if( req.isVarExist("minScore") )
+    m_minscore = std::strtof( req.getVariable("minScore").c_str(), nullptr );
+  
+  if( req.isVarExist("maxScore") )
+    m_maxscore = std::strtof( req.getVariable("maxScore").c_str(), nullptr );
+  
+  if( m_minscore > m_maxscore )
+  {
+    float tmp = m_maxscore;
+    m_maxscore = m_minscore;
+    m_minscore = tmp;
+  }
+  
+  m_allowUnrated = !req.isVarExist("disableUnrated");
+  
+  if( !req.isVarExist("allowedGenre") ) return;
+  
+  std::string allowedgenre_str = req.getVariable("allowedGenre"), err;
+  Json::CharReaderBuilder builder; Json::CharReader *reader = builder.newCharReader();
+  Json::Value root;
+  
+  if( !reader->parse(allowedgenre_str.c_str(), allowedgenre_str.c_str() + allowedgenre_str.length(),
+      &root, &err) )
+  {
+    delete reader; return;
+  }
+  delete reader;
+  
+  if( root[0].isArray() )
+  {
+    m_allowedgenre.clear();
+    for( auto i : root[0] )
+      if( i.isInt() )
+      {
+        try
+        {
+          m_allowedgenre.push_back( static_cast<enum genre>( i.asInt() ) );
+        }
+        catch( std::exception& ){continue;}
+      }
+  }
+}
+
+bool APIFilter::validate() const noexcept
+{
+  //Date check.
+  if( !std::regex_match( m_mindate, regdate ) ) return false;
+
+  if( !m_maxdate.empty() )
+    if( !std::regex_match(m_maxdate, regdate) ) return false;
+
+  //if( !(m_minscore < 0 || m_minscore > 5) && !( m_maxscore < 0 || m_maxscore > 5 ) )
+  //  return false;
+  
+  return true;
+}
+
+const std::string APIFilter::getQuery() const noexcept
+{
+  std::ostringstream sql_query; std::vector<std::string> conditions;
+  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
+  
+  if( m_minscore != 0 || m_maxscore != 5 )
+  {
+    conditions.push_back( "(score BETWEEN " + std::to_string(m_minscore) + " AND " + std::to_string(m_maxscore) + ")" );
+    //if( m_allowUnrated )
+    //  conditions.push_back("score = -1");
+  }
+  
+  if( m_mindate != "2003/01/01" || !m_maxdate.empty() )
+    conditions.push_back("(submission_date BETWEEN \"" + m_mindate + "\" AND \"" + m_maxdate + "\")" );
+  
+  if( m_allowedgenre.size() < 48 )
+  {
+    if( m_allowedgenre.size() == 1 )
+      conditions.push_back("genre=" + std::to_string( static_cast<int>(m_allowedgenre[0]) ));
+    else
+    {
+      std::string tmp = "genre IN (";
+      for(size_t i = 0; i < m_allowedgenre.size(); i++)
+      {
+        tmp += std::to_string( static_cast<int>(m_allowedgenre[i]) );
+        if( i != m_allowedgenre.size() - 1 )
+          tmp += ", ";
+      }
+      tmp+=')';
+      conditions.push_back(tmp);
+    }
+  }
+  
+  if( !conditions.empty() )
+    sql_query << " WHERE ";
+  
+  for(unsigned int i = 0; i < conditions.size(); i++)
+  {
+    sql_query << conditions[i];
+    if( i != conditions.size() -1)
+      sql_query << " AND ";
+  }
+  
+  sql_query << " ORDER BY RANDOM() LIMIT 25;";
   
   return sql_query.str();
 }

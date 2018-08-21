@@ -24,7 +24,6 @@ public:
 
 class AudioBridgeFilter : public IFilter
 {
-  static const std::regex m_regdate;
 public:
   AudioBridgeFilter();
   ~AudioBridgeFilter();
@@ -40,5 +39,25 @@ private:
   
   std::vector<enum genre> m_allowedgenre;
 };
+
+class APIFilter : public IFilter
+{
+public:
+  APIFilter();
+  ~APIFilter();
+  
+  void set(const http::Request&);
+  bool validate() const noexcept;
+  
+  const std::string getQuery() const noexcept;
+private:
+  std::string m_mindate, m_maxdate;
+  float m_minscore, m_maxscore;
+  bool m_allowUnrated;
+  
+  std::vector<enum genre> m_allowedgenre;
+};
+
+static const std::regex regdate("^\\d{4}/\\d{2}/\\d{2}$");
 
 #endif //FILTER_HPP

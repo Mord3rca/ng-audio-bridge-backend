@@ -187,10 +187,10 @@ void APIFilter::set(const http::Request &req)
   }
   delete reader;
   
-  if( root[0].isArray() )
+  if( !root.empty() && root["genres"].isArray() )
   {
     m_allowedgenre.clear();
-    for( auto i : root[0] )
+    for( auto i : root["genres"] )
       if( i.isInt() )
       {
         try

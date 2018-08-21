@@ -299,6 +299,8 @@ void http::Parser::_decodeVariable()
       
       m_target->m_vars[key] = value;
     }
+    else
+      m_target->m_vars[line] = "";
     
   } while( stream.good() && !stream.eof() );
 }

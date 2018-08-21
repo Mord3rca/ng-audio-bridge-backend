@@ -45,6 +45,9 @@ namespace http
       return (i != m_vars.end() ? i->second : "" );
     }
     
+    bool   isVarExist(const std::string &name) const noexcept
+    { return m_vars.find(name) != m_vars.end(); }
+    
     const std::string   getHeader(const std::string &name) const noexcept
     {
       auto i = m_headers.find(name);

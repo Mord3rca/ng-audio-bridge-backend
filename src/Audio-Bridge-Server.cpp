@@ -28,7 +28,7 @@ void AudioServer::OnPost( http::Client &client, const http::Request &req)
 {
   auto request = req.getPath();
   
-  if( request == "/Radio2/FilterBridge.php" )
+  if( request == "/Radio2/FilterBridge.php" || request == "/api/filter/old" )
     _audiobridge_process(client, req);
   else if( request == "/api/filter/" )
     _api_filter( client, req );
@@ -77,6 +77,8 @@ void AudioServer::_audiobridge_process(http::Client &client, const http::Request
     resp.appendData("{\"ResultSet\":");
     resp.appendData(rslt.toJson());
     resp.appendData("}");
+    
+    client << resp;
   }
   else
     client << http::genericAnswer[3]; // SERVER ERROR

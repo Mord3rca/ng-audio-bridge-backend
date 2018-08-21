@@ -35,19 +35,14 @@ void AudioServer::OnPost( http::Client &client, const http::Request &req)
   else if( request == "/api/filter/composer" )
     ;//_api_filter_composer( client, req );
   else
-  {
-    http::Response resp;
-    resp.setStatusCode(http::status_code::FORBIDDEN);
-    resp.appendData("Wrong Post request");
-    client << resp;
-  }
+    client << http::genericAnswer[ 2 ]; // Forbidden
 }
 
 void AudioServer::OnGet( http::Client &client, const http::Request &req)
 {
-  http::Response resp;
   if( req.getPath() == "/crossdomain.xml" )
   {
+    http::Response resp;
     resp.setStatusCode(http::status_code::OK);
     resp.addHeader("Content-Type", "text/xml");
     
@@ -57,22 +52,23 @@ void AudioServer::OnGet( http::Client &client, const http::Request &req)
   }
   else if( req.getPath().rfind(".mp3") != std::string::npos )
     _audiobridge_getmp3(client, req);
+  else if( req.getPath().find("/api/track/") != std::string::npos )
+    _api_track_id(client, req);
+  else if( req.getPath().find("/api/version") != std::string::npos )
+    _api_version(client);
   else
-  {
-    resp.setStatusCode( http::status_code::NOT_FOUND );
-    client << resp;
-  }
+    client << http::genericAnswer[ 1 ]; //Not Found.
 }
 
 void AudioServer::_audiobridge_process(http::Client &client, const http::Request &req)
 {
-  http::Response resp; AudioBridgeFilter filter;
-  filter.set(req);
+  AudioBridgeFilter filter; filter.set(req);
   
   if( filter.validate() )
   {
     AudioQueryResult rslt = m_db->getViaFilter(filter);
     
+    http::Response resp;
     resp.setStatusCode(http::status_code::OK);
     resp.addHeader("Content-Type", "application/json");
     
@@ -81,13 +77,7 @@ void AudioServer::_audiobridge_process(http::Client &client, const http::Request
     resp.appendData("}");
   }
   else
-  {
-    resp.setStatusCode(http::status_code::INTERNAL_SERVER_ERROR);
-    resp.addHeader("Content-Type", "text/plain");
-    resp.appendData("Process Error");
-  }
-  
-  client << resp;
+    client << http::genericAnswer[3]; // SERVER ERROR
 }
 
 void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request &req)
@@ -125,7 +115,51 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
   }
 }
 
+//POST
 void AudioServer::_api_filter(http::Client &client, const http::Request &req)
 {
   
+}
+
+//GET
+void AudioServer::_api_version(http::Client &client)
+{
+  http::Response resp;
+  resp.setStatusCode( http::status_code::OK );
+  resp.addHeader("Content-Type", "text/plain");
+  resp.appendData("Version: 0.1");
+  
+  client << resp;
+}
+
+void AudioServer::_api_track_id(http::Client &client, const http::Request &req)
+{
+  static std::regex number_only("\\d*");
+  if( m_db == nullptr )
+  {
+    client << http::genericAnswer[3]; return;
+  }
+  //Schema: /api/track/<ID>
+  //Get ID from path requested
+  std::istringstream stream( req.getPath() );
+  std::string str_id;
+  for( int i = 4; i > 0; i-- )
+    std::getline(stream, str_id, '/');
+  
+  if( !std::regex_match(str_id, number_only) )
+  { client << http::genericAnswer[ 3 ]; return; }
+  
+  unsigned int id = std::strtoul( str_id.c_str(), nullptr, 10 );
+  
+  //ID OK: Processing query
+  AudioQueryResult rslt = m_db->getSongByID( id );
+  if( rslt.isEmpty() )
+    client << http::genericAnswer[1];
+  else
+  {
+    http::Response resp;
+    resp.setStatusCode( http::status_code::MOVED_PERMANENTLY );
+    resp.addHeader("Location", rslt[0].getURL() );
+    client << resp;
+  }
 }

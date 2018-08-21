@@ -33,6 +33,7 @@ protected:
   void _api_filter_composer(http::Client&, const http::Request&);
   
   //GET Request
+  void _api_version(http::Client&);
   void _api_track_id(http::Client&, const http::Request&);
   void _api_genrelist(http::Client&, const http::Request&);
   

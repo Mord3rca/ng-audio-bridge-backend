@@ -99,7 +99,8 @@ bool AudioBridgeFilter::validate() const noexcept
 const std::string AudioBridgeFilter::getQuery() const noexcept
 {
   std::ostringstream sql_query; std::vector<std::string> conditions;
-  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
+  //sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
+  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks WHERE id IN (SELECT id FROM Tracks";
   
   if( !m_maxdate.empty() && m_mindate != "2003/01/01" )
     conditions.push_back( "(submission_date BETWEEN \"" + m_mindate + "\" AND \"" + m_maxdate +"\")");
@@ -135,7 +136,7 @@ const std::string AudioBridgeFilter::getQuery() const noexcept
       sql_query << " AND ";
   }
   
-  sql_query << " ORDER BY RANDOM() LIMIT 25;";
+  sql_query << " ORDER BY RANDOM() LIMIT 25);";
   
   //std::cout << "Executed query: " << sql_query.str() << std::endl;
   
@@ -219,7 +220,8 @@ bool APIFilter::validate() const noexcept
 const std::string APIFilter::getQuery() const noexcept
 {
   std::ostringstream sql_query; std::vector<std::string> conditions;
-  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
+  //sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
+  sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks WHERE id IN (SELECT id FROM Tracks";
   
   if( m_minscore != 0 || m_maxscore != 5 )
   {
@@ -259,7 +261,7 @@ const std::string APIFilter::getQuery() const noexcept
       sql_query << " AND ";
   }
   
-  sql_query << " ORDER BY RANDOM() LIMIT 25;";
+  sql_query << " ORDER BY RANDOM() LIMIT 25);";
   
   return sql_query.str();
 }

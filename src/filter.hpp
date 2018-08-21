@@ -58,6 +58,21 @@ private:
   std::vector<enum genre> m_allowedgenre;
 };
 
+class APIFilterComposer : public IFilter
+{
+public:
+  APIFilterComposer();
+  ~APIFilterComposer();
+  
+  void set(const http::Request&);
+  bool validate() const noexcept;
+  
+  const std::string getQuery() const noexcept;
+  
+private:
+  std::string m_composer;
+};
+
 static const std::regex regdate("^\\d{4}/\\d{2}/\\d{2}$");
 
 #endif //FILTER_HPP

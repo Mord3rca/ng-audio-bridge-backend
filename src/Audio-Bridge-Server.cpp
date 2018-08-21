@@ -33,7 +33,7 @@ void AudioServer::OnPost( http::Client &client, const http::Request &req)
   else if( request == "/api/filter/" )
     _api_filter( client, req );
   else if( request == "/api/filter/composer" )
-    ;//_api_filter_composer( client, req );
+    _api_filter_composer( client, req );
   else
     client << http::genericAnswer[ 2 ]; // Forbidden
 }
@@ -121,6 +121,26 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
 void AudioServer::_api_filter(http::Client &client, const http::Request &req)
 {
   APIFilter filter; filter.set(req);
+  
+  if( filter.validate() )
+  {
+    AudioQueryResult rslt = m_db->getViaFilter(filter);
+    
+    http::Response resp; resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Content-Type","application/json");
+    resp.appendData("{\"Tracks\":");
+    resp.appendData( rslt.toJson() );
+    resp.appendData("}");
+    
+    client << resp;
+  }
+  else
+    client << http::genericAnswer[3];
+}
+
+void AudioServer::_api_filter_composer(http::Client &client, const http::Request &req)
+{
+  APIFilterComposer filter; filter.set(req);
   
   if( filter.validate() )
   {

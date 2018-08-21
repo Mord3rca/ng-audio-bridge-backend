@@ -265,3 +265,22 @@ const std::string APIFilter::getQuery() const noexcept
   
   return sql_query.str();
 }
+
+APIFilterComposer::APIFilterComposer(){}
+
+APIFilterComposer::~APIFilterComposer(){}
+
+void APIFilterComposer::set(const http::Request &req)
+{
+  m_composer = req.getVariable("composer");
+}
+
+bool APIFilterComposer::validate() const noexcept
+{
+  return !m_composer.empty();
+}
+
+const std::string APIFilterComposer::getQuery() const noexcept
+{
+  return "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks WHERE id IN (SELECT id FROM Tracks WHERE composer LIKE \"" + m_composer + "\");";
+}

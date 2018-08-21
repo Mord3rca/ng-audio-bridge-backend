@@ -75,6 +75,7 @@ namespace http
     friend class Client;
   public:
     Response();
+    Response(const status_code, const std::map<std::string, std::string>, const std::string);
     
     void setStatusCode(enum http::status_code );
     
@@ -145,6 +146,14 @@ namespace http
   private:
     void _decodeVariable();
     Request* m_target;
+  };
+  
+  static const std::array<http::Response, 4> genericAnswer = 
+  {
+    http::Response(http::status_code::OK, {{"Content-Type", "text/plain"}}, "OK"),
+    http::Response(http::status_code::NOT_FOUND, {{}}, ""),
+    http::Response(http::status_code::FORBIDDEN, {{}}, ""),
+    http::Response(http::status_code::INTERNAL_SERVER_ERROR, {{}}, "")
   };
 }
 #endif //HTTPSERVER_HPP

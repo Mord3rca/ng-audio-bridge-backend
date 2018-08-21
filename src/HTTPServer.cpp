@@ -107,6 +107,10 @@ void http::Server::OnGet(http::Client &client, const http::Request &req)
 
 http::Response::Response(){}
 
+http::Response::Response(const http::status_code code, const std::map<std::string, std::string> headers, const std::string data) :
+  m_headers(headers), m_data(data), m_code(code)
+{}
+
 void http::Response::setStatusCode( http::status_code code)
 {
   m_code = code;

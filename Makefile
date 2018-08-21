@@ -1,7 +1,7 @@
 CC=gcc
 CXX=g++
 RM=rm -f
-CPPFLAGS=-Wall -I/usr/include/jsoncpp
+CPPFLAGS=-std=c++11 -Wall -I/usr/include/jsoncpp
 LIBS=-lpthread -lsqlite3 -ljsoncpp
 
 SRCS= src/args.cpp src/Audio-Bridge-Server.cpp src/AudioDatabase.cpp \

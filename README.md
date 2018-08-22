@@ -1,11 +1,11 @@
-# ng-audio-bridge-backend
-The backend of [NG Audio Bridge](https://www.newgrounds.com/portal/view/553053 ).
+# ng-audio-backend
+The backend of [NG Audio Bridge](https://www.newgrounds.com/portal/view/553053).
 
 ## Network Modification
 
 * You need to be an administrator to do this modification.
 
-To use it on your machine, you have to add the following lines to your `/etc/hosts` :
+To use it with the old flash application on your machine, you have to add the following lines to your `/etc/hosts` :
 ```
 127.0.0.1	gumonshoe.net
 127.0.0.1	www.gumonshoe.net
@@ -25,8 +25,8 @@ For Windows: `%WINDIR%\\System32\\Drivers\\etc\\hosts`
 
 * Fully Compatible with [NG Audio Bridge](https://www.newgrounds.com/portal/view/553053)
 
-## Futur Improvement
+## Incomming
 
-Mostly for the crawler, I want to upgrade the indexing DB to allow more precise search.
+* Javascript connector for the api
 
-Will be compatible with my other project: [Newgrounds Radio](https://github.com/Mord3rca/newgrounds-radio)
+* C++ Crawler to update Tracks periodicly

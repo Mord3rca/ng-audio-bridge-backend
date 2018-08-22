@@ -211,12 +211,24 @@ void AudioServer::_api_genrelist(http::Client &client, const http::Request &req)
 {
   if(!m_db) { client << http::genericAnswer[3]; return; }
   
+  auto i = m_db->getGenreList();
+  
   http::Response resp;
   resp.setStatusCode(http::status_code::OK);
-  resp.addHeader("Content-Type","text/plain");
   if( req.isVarExist("json") )
-    resp.appendData("Will be sent in JSON Format");
+  {
+    resp.addHeader("Content-Type","application/json");
+    
+    resp.appendData("{\"genres\":[");
+    for(auto j : i)
+      resp.appendData( "{\"id\":" + std::to_string( std::get<0>(j) ) + ", \"name\":\"" + std::get<1>(j) + "\"}, " );
+    resp.appendData("{} ]}");
+  }
   else
-    resp.appendData("Will be sent in TXT Format");
+  {
+    resp.addHeader("Content-Type","text/plain");
+    for( auto j : i )
+      resp.appendData( std::get<1>(j) + ": " + std::to_string( std::get<0>(j) ) + "\n");
+  }
   client << resp;
 }

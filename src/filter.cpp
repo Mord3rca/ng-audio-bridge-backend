@@ -211,8 +211,8 @@ bool APIFilter::validate() const noexcept
   if( !m_maxdate.empty() )
     if( !std::regex_match(m_maxdate, regdate) ) return false;
 
-  //if( !(m_minscore < 0 || m_minscore > 5) && !( m_maxscore < 0 || m_maxscore > 5 ) )
-  //  return false;
+  if( !(m_minscore >= 0 && m_minscore <= 5) || !( m_maxscore >= 0 && m_maxscore <= 5 ) )
+    return false;
   
   return true;
 }

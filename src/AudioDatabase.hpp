@@ -48,9 +48,12 @@ public:
   const AudioQueryResult getSongsByName( const std::string&, size_t& );
   
   const AudioQueryResult getViaFilter( const IFilter& );
+  
+  const std::map<int, std::string> getGenreList();
 
 protected:
   static int sqlite3_callback( void*, int, char**, char** );
+  static int sqlite3_genre_callback( void*, int, char**, char** );
   
 private:
   int _loadDBInMemory( const std::string& );

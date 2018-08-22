@@ -52,11 +52,31 @@ const AudioQueryResult AudioDatabase::getViaFilter( const IFilter &f )
   return rslt;
 }
 
+const std::map<int, std::string> AudioDatabase::getGenreList()
+{
+  std::map<int, std::string> result;
+  sqlite3_exec(m_handler, "SELECT * FROM GenreType;", &AudioDatabase::sqlite3_genre_callback, &result, nullptr);
+  
+  return result;
+}
+
 int AudioDatabase::sqlite3_callback(void* data, int argc, char **argv, char **azColumn)
 {
   AudioQueryResult *obj = static_cast<AudioQueryResult*>(data);
   
   obj->m_songs.push_back( new SongItem(argc, argv, azColumn) );
+  
+  return 0;
+}
+
+int AudioDatabase::sqlite3_genre_callback(void* data, int argc, char **argv, char **azColumn)
+{
+  auto obj = static_cast< std::map<int, std::string>* >(data);
+  int i; std::string j;
+  i = std::atoi( argv[0] );
+  j = argv[1];
+  
+  (*obj)[i] = j;
   
   return 0;
 }

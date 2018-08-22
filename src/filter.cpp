@@ -220,14 +220,16 @@ bool APIFilter::validate() const noexcept
 const std::string APIFilter::getQuery() const noexcept
 {
   std::ostringstream sql_query; std::vector<std::string> conditions;
-  //sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks";
   sql_query << "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks WHERE id IN (SELECT id FROM Tracks";
   
   if( m_minscore != 0 || m_maxscore != 5 )
   {
-    conditions.push_back( "(score BETWEEN " + std::to_string(m_minscore) + " AND " + std::to_string(m_maxscore) + ")" );
-    //if( m_allowUnrated )
-    //  conditions.push_back("score = -1");
+    std::string tmp = "(score BETWEEN " + std::to_string(m_minscore) + " AND " + std::to_string(m_maxscore) + ")";
+    
+    if( m_allowUnrated )
+      tmp = "( " + tmp + "OR score=-1)";
+    
+    conditions.push_back( tmp );
   }
   
   if( m_mindate != "2003/01/01" || !m_maxdate.empty() )

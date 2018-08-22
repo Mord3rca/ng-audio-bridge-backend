@@ -74,6 +74,7 @@ void AudioServer::_audiobridge_process(http::Client &client, const http::Request
     
     http::Response resp;
     resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Access-Control-Allow-Origin", "*");
     resp.addHeader("Content-Type", "application/json");
     
     resp.appendData("{\"ResultSet\":");
@@ -133,6 +134,7 @@ void AudioServer::_api_filter(http::Client &client, const http::Request &req)
     AudioQueryResult rslt = m_db->getViaFilter(filter);
     
     http::Response resp; resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Access-Control-Allow-Origin", "*");
     resp.addHeader("Content-Type","application/json");
     resp.appendData("{\"Tracks\":");
     resp.appendData( rslt.toJson() );
@@ -155,6 +157,7 @@ void AudioServer::_api_filter_composer(http::Client &client, const http::Request
     AudioQueryResult rslt = m_db->getViaFilter(filter);
     
     http::Response resp; resp.setStatusCode(http::status_code::OK);
+    resp.addHeader("Access-Control-Allow-Origin", "*");
     resp.addHeader("Content-Type","application/json");
     resp.appendData("{\"Tracks\":");
     resp.appendData( rslt.toJson() );
@@ -171,6 +174,7 @@ void AudioServer::_api_version(http::Client &client)
 {
   http::Response resp;
   resp.setStatusCode( http::status_code::OK );
+  resp.addHeader("Access-Control-Allow-Origin", "*");
   resp.addHeader("Content-Type", "text/plain");
   resp.appendData("Version: 0.1");
   
@@ -201,6 +205,7 @@ void AudioServer::_api_track_id(http::Client &client, const http::Request &req)
   else
   {
     http::Response resp;
+    resp.addHeader("Access-Control-Allow-Origin", "*");
     resp.setStatusCode( http::status_code::MOVED_PERMANENTLY );
     resp.addHeader("Location", rslt[0].getURL() );
     client << resp;
@@ -217,6 +222,7 @@ void AudioServer::_api_genrelist(http::Client &client, const http::Request &req)
   resp.setStatusCode(http::status_code::OK);
   if( req.isVarExist("json") )
   {
+    resp.addHeader("Access-Control-Allow-Origin", "*");
     resp.addHeader("Content-Type","application/json");
     
     resp.appendData("{\"genres\":[");
@@ -226,6 +232,7 @@ void AudioServer::_api_genrelist(http::Client &client, const http::Request &req)
   }
   else
   {
+    resp.addHeader("Access-Control-Allow-Origin", "*");
     resp.addHeader("Content-Type","text/plain");
     for( auto j : i )
       resp.appendData( std::get<1>(j) + ": " + std::to_string( std::get<0>(j) ) + "\n");

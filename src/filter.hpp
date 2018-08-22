@@ -7,6 +7,8 @@
 
 #include <json/json.h>
 
+#include <sqlite3.h>
+
 #include "songItem.hpp"
 #include "HTTPServer.hpp" //http::Request
 

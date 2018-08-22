@@ -64,6 +64,8 @@ void AudioServer::OnGet( http::Client &client, const http::Request &req)
 
 void AudioServer::_audiobridge_process(http::Client &client, const http::Request &req)
 {
+  if(!m_db) { client << http::genericAnswer[3]; return; }
+  
   AudioBridgeFilter filter; filter.set(req);
   
   if( filter.validate() )
@@ -122,6 +124,8 @@ void AudioServer::_audiobridge_getmp3(http::Client &client, const http::Request 
 //POST
 void AudioServer::_api_filter(http::Client &client, const http::Request &req)
 {
+  if(!m_db) { client << http::genericAnswer[3]; return; }
+  
   APIFilter filter; filter.set(req);
   
   if( filter.validate() )
@@ -142,6 +146,8 @@ void AudioServer::_api_filter(http::Client &client, const http::Request &req)
 
 void AudioServer::_api_filter_composer(http::Client &client, const http::Request &req)
 {
+  if(!m_db) { client << http::genericAnswer[3]; return; }
+  
   APIFilterComposer filter; filter.set(req);
   
   if( filter.validate() )
@@ -174,10 +180,8 @@ void AudioServer::_api_version(http::Client &client)
 void AudioServer::_api_track_id(http::Client &client, const http::Request &req)
 {
   static std::regex number_only("\\d*");
-  if( m_db == nullptr )
-  {
-    client << http::genericAnswer[3]; return;
-  }
+  if(!m_db) { client << http::genericAnswer[3]; return; }
+  
   //Schema: /api/track/<ID>
   //Get ID from path requested
   std::istringstream stream( req.getPath() );
@@ -205,6 +209,8 @@ void AudioServer::_api_track_id(http::Client &client, const http::Request &req)
 
 void AudioServer::_api_genrelist(http::Client &client, const http::Request &req)
 {
+  if(!m_db) { client << http::genericAnswer[3]; return; }
+  
   http::Response resp;
   resp.setStatusCode(http::status_code::OK);
   resp.addHeader("Content-Type","text/plain");

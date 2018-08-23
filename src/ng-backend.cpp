@@ -3,6 +3,7 @@
 extern "C"
 {
   #include <unistd.h> //daemon()
+  #include <getopt.h>
   #include <syslog.h> //Will be use... Probably in his own object.
   
   #include <sys/types.h>
@@ -12,7 +13,6 @@ extern "C"
 
 #include <csignal> // signal() : To properly free all the ressources.
 
-#include "args.hpp"
 #include "Audio-Bridge-Server.hpp"
 #include "AudioDatabase.hpp"
 

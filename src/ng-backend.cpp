@@ -4,6 +4,10 @@ extern "C"
 {
   #include <unistd.h> //daemon()
   #include <syslog.h> //Will be use... Probably in his own object.
+  
+  #include <sys/types.h>
+  #include <pwd.h>
+  #include <grp.h>
 }
 
 #include <csignal> // signal() : To properly free all the ressources.
@@ -16,9 +20,31 @@ AudioServer   *Server = nullptr;
 AudioDatabase *db     = nullptr;
 
 //You really have to check your privilege !
-static void drop_privilege(const char* user, const char* group)
+static void drop_privilege(const char* user)
 {
-  //Write the chg user stuff here (IF Root)
+  if( user && getuid() == 0 )
+  {
+    struct passwd *pw = getpwnam(user);
+    if(pw)
+    {
+      if( initgroups( pw->pw_name, pw->pw_gid ) != 0 || setgid( pw->pw_gid ) !=0 || setuid( pw->pw_uid ) != 0 )
+      {
+        std::cerr << "[-] Couldn't change to " << user << " uid=" << pw->pw_uid << " gid=" << pw->pw_gid <<std::endl;
+        std::exit(-1);
+      }
+      
+      if( setuid(0) != -1 || setgid(0) != -1 )
+      {
+        std::cout << "[-] CRITICAL: Can become root again after dropping privilege..." << std::endl;
+        std::exit(-1);
+      }
+    }
+    else
+    {
+      std::cerr << "[-] Can't drop root privilege..." << std::endl;
+      std::exit(-1);
+    }
+  }
 }
 
 static void signal_handler( int sig )
@@ -61,9 +87,8 @@ static void create_objects_via_args(int argc, char **argv)
   
   if( argument.daemonize() )
   {
+    drop_privilege( argument.getUserName().c_str() );
     daemon(0, 0);
-    drop_privilege( argument.getUserName().c_str(),
-                    argument.getGroupName().c_str() );
   }
 }
 

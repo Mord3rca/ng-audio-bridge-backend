@@ -134,7 +134,26 @@ NG_API_Connector.prototype.getTracks = function( filter ){
     }
   };
   xhttp.open("POST", this._api_url + "/api/filter/", true);
-  xhttp.send( JSON.stringify( filter ) );
+  
+  var request = new Array()
+  if( typeof filter.minDate === "string" )
+    request.push( "minDate=" + filter.minDate )
+  
+  if( typeof filter.minDate === "string" )
+    request.push( "minDate=" + filter.minDate )
+  
+  if( typeof filter.minScore === "number" )
+    request.push( "minScore=" + filter.minScore )
+    
+  if( typeof filter.maxScore === "number" )
+    request.push( "maxScore=" + filter.maxScore )
+  
+  if( typeof filter.allowUnrated === "boolean" && !filter.allowUnrated )
+    request.push( "allowUnrated=false" )
+  
+  request.push( "allowedGenre={\"genres\":" + JSON.stringify(filter.genres) +"}" )
+  
+  xhttp.send( request.join('&') );
 }
 
 NG_API_Connector.prototype.getComposerTracks = function( composer_name ){

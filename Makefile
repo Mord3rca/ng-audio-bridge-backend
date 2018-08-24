@@ -4,7 +4,7 @@ RM=rm -f
 CPPFLAGS=-std=c++11 -Wall -I/usr/include/jsoncpp
 LIBS=-lpthread -lsqlite3 -ljsoncpp
 
-SRCS= src/args.cpp src/Audio-Bridge-Server.cpp src/AudioDatabase.cpp \
+SRCS= src/Audio-Bridge-Server.cpp src/AudioDatabase.cpp \
 			src/filter.cpp src/HTTPServer.cpp src/songItem.cpp src/TCPEventLoop.cpp \
 			src/ng-backend.cpp
 

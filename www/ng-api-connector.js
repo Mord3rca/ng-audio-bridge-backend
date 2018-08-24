@@ -12,6 +12,7 @@ function NG_API_Connector( api_url ) {
     for(var i = 0;i<48;i++) this.genres[i]=i
   };
   
+  /*
   this.oldFilter = function() {
     date = new Date()
     this.maxScore = 5
@@ -19,6 +20,7 @@ function NG_API_Connector( api_url ) {
     this.minDate = "2003/01/01"
     this.maxDate = date.getFullYear() + "/" + (date.getMonth()+1) + "/" + date.getDate()
   };
+  */
   
   this.callbacks = new Array()
   
@@ -55,7 +57,7 @@ NG_API_Connector.prototype.getGenreList = function (){
     
     if( typeof json.genres == 'undefined' )
     {
-      error_callback("fetchGenreList", "Answer does not contain an array named genres")
+      error_callback("getGenreList", "Answer does not contain an array named genres")
       return;
     }
     

@@ -1,5 +1,5 @@
-function NG_API_Connector( api_url ) {
-  this._api_url = api_url;
+function NG_API_Connector( api_url = String(document.location).substr(0, String(document.location).length-1) ) {
+  this._api_url = api_url
 
   this.filter = function() {
     date = new Date()

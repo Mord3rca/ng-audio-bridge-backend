@@ -173,7 +173,8 @@ void APIFilter::set(const http::Request &req)
     m_minscore = tmp;
   }
   
-  m_allowUnrated = !req.isVarExist("disableUnrated");
+  if( req.isVarExist("allowUnrated") )
+    m_allowUnrated = (req.getVariable("allowUnrated") == "true");
   
   if( !req.isVarExist("allowedGenre") ) return;
   

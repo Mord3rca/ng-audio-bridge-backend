@@ -176,7 +176,7 @@ void AudioServer::_api_version(http::Client &client)
   resp.setStatusCode( http::status_code::OK );
   resp.addHeader("Access-Control-Allow-Origin", "*");
   resp.addHeader("Content-Type", "text/plain");
-  resp.appendData("Version: 0.1");
+  resp.appendData("0.1");
   
   client << resp;
 }

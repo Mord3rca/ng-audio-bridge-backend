@@ -142,7 +142,8 @@ const std::string AudioQueryResult::toJson() const
           << ",\"title\":\"" << JSONSafe( snd->getSongName() ) << "\""
           << ",\"score\":" << snd->getScore()
           << ",\"genre\":\"" << genreToStr( snd->getGenre() ) << "\""
-          << ",\"date\":\"" << snd->getSubmissionDate() << "\"}";
+          << ",\"date\":\"" << snd->getSubmissionDate() << "\"}"
+          << ",\"url\":\""<< snd->getURL() << "\"}" ;
     if( i != m_songs.size() -1 )
       rslt << ", ";
   }

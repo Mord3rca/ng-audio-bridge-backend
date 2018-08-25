@@ -52,7 +52,12 @@ public:
   bool validate() const noexcept;
   
   const std::string getQuery() const noexcept;
+  
+protected:
+  void set_json(const http::Request&);
+  void set_post(const http::Request&);
 private:
+  void _read_genres_array( const Json::Value& );
   std::string m_mindate, m_maxdate;
   float m_minscore, m_maxscore;
   bool m_allowUnrated;

@@ -154,6 +154,53 @@ APIFilter::~APIFilter(){}
 
 void APIFilter::set(const http::Request &req)
 {
+  if( req.isVarExist("filterObject") )
+    set_json(req);
+  else
+    set_post(req);
+}
+
+void APIFilter::set_json( const http::Request &req )
+{
+  Json::CharReaderBuilder builder; Json::CharReader *reader = builder.newCharReader();
+  std::string json_err; Json::Value root;
+  const char *stream = req.getVariable("filterObject").c_str();
+  
+  if( !reader->parse( stream, stream + req.getVariable("filterObject").length(),
+                      &root, &json_err) )
+  {
+    delete reader;
+    return;
+  }
+  delete reader;
+  
+  if( root["minDate"] != Json::Value::nullSingleton() && root["minDate"].isString() )
+    m_mindate = root["minDate"].asString();
+  
+  if( root["maxDate"] != Json::Value::nullSingleton() && root["maxDate"].isString() )
+    m_maxdate = root["maxDate"].asString();
+  
+  if( root["minScore"] != Json::Value::nullSingleton() && root["minScore"].isNumeric() )
+    m_minscore = root["minScore"].asFloat();
+  
+  if( root["maxScore"] != Json::Value::nullSingleton() && root["maxScore"].isNumeric() )
+    m_maxscore = root["maxScore"].asFloat();
+  
+  if( m_minscore > m_maxscore )
+  {
+    float tmp = m_maxscore;
+    m_maxscore = m_minscore;
+    m_minscore = tmp;
+  }
+  
+  if( root["allowUnrated"] != Json::Value::nullSingleton() && root["allowUnrated"].isBool() )
+    m_allowUnrated = root["allowUnrated"].asBool();
+  
+  _read_genres_array(root);
+}
+
+void APIFilter::set_post( const http::Request &req )
+{
   if( req.isVarExist("minDate") )
     m_mindate = req.getVariable("minDate");
   
@@ -189,6 +236,11 @@ void APIFilter::set(const http::Request &req)
   }
   delete reader;
   
+  _read_genres_array(root);
+}
+
+void APIFilter::_read_genres_array( const Json::Value &root )
+{
   if( !root.empty() && root["genres"].isArray() )
   {
     m_allowedgenre.clear();

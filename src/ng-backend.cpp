@@ -40,8 +40,6 @@ void printHelp(std::ostream& out, const char* name) noexcept
       << "\tRun this program as a service." << std::endl
       << "--user, -u <username>" << std::endl
       << "\tRun this program as another user. (default: nobody)" << std::endl
-      << "--group, -g <groupname>" << std::endl
-      << "\tRun this program as another group. (default: nobody)" << std::endl
       << "--dbpath, -d <filename>" << std::endl
       << "\tSet the path of the DB file to use." << std::endl
       << "--live, -s" << std::endl

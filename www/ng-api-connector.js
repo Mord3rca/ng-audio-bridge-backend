@@ -56,6 +56,11 @@ NG_API_Connector.prototype.getTrackURL = function ( id ) {
   return this._api_url + "api/track/" + id
 }
 
+NG_API_Connector.prototype.getRandomTrack = function () {
+  return this._api_url + "api/track/random"
+}
+
+
 NG_API_Connector.prototype.getGenreList = function (){
   var begin_callback= this.callbacks.onGenreBegin
   var new_callback  = this.callbacks.onGenreNew

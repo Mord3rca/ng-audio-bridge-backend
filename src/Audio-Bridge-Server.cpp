@@ -53,7 +53,13 @@ void AudioServer::OnGet( http::Client &client, const http::Request &req)
   else if( req.getPath().rfind(".mp3") != std::string::npos )
     _audiobridge_getmp3(client, req);
   else if( req.getPath().find("/api/track/") != std::string::npos )
-    _api_track_id(client, req);
+  {
+    if( req.getPath() == "/api/track/random" )
+      _api_track_random(client, req);
+    else
+      _api_track_id(client, req);
+    
+  }
   else if( req.getPath() == "/api/version" )
     _api_version(client);
   else if( req.getPath() == "/api/genres" )
@@ -200,6 +206,24 @@ void AudioServer::_api_track_id(http::Client &client, const http::Request &req)
   
   //ID OK: Processing query
   AudioQueryResult rslt = m_db->getSongByID( id );
+  if( rslt.isEmpty() )
+    client << http::genericAnswer[1];
+  else
+  {
+    http::Response resp;
+    resp.addHeader("Access-Control-Allow-Origin", "*");
+    resp.setStatusCode( http::status_code::MOVED_PERMANENTLY );
+    resp.addHeader("Location", rslt[0].getURL() );
+    client << resp;
+  }
+}
+
+void AudioServer::_api_track_random(http::Client &client, const http::Request&)
+{
+  if(!m_db) { client << http::genericAnswer[3]; return; }
+  
+  auto rslt = m_db->getViaFilter( APIFilterRandom() );
+  
   if( rslt.isEmpty() )
     client << http::genericAnswer[1];
   else

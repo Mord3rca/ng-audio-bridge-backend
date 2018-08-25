@@ -80,6 +80,19 @@ private:
   std::string m_composer;
 };
 
+class APIFilterRandom : public IFilter
+{
+public:
+  APIFilterRandom(){}
+  ~APIFilterRandom(){}
+  
+  void set( const http::Request& ){}
+  bool validate() const noexcept { return true; }
+  
+  const std::string getQuery() const noexcept
+  { return "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks ORDER BY RANDOM() LIMIT 1;"; }
+};
+
 static const std::regex regdate("^\\d{4}/\\d{2}/\\d{2}$");
 
 #endif //FILTER_HPP

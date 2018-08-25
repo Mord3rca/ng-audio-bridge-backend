@@ -1,4 +1,15 @@
-function NG_API_Connector( api_url = String(document.location).substr(0, String(document.location).length-1) ) {
+//Based on answer: https://stackoverflow.com/questions/3066586/get-string-in-yyyymmdd-format-from-js-date-object
+Date.prototype.yyyymmdd = function() {
+  var mm = this.getMonth() + 1; // getMonth() is zero-based
+  var dd = this.getDate();
+
+  return [this.getFullYear(),
+          (mm>9 ? '' : '0') + mm,
+          (dd>9 ? '' : '0') + dd
+         ].join('/');
+};
+
+function NG_API_Connector( api_url = document.location ) {
   this._api_url = api_url
 
   this.filter = function() {
@@ -7,7 +18,7 @@ function NG_API_Connector( api_url = String(document.location).substr(0, String(
     this.minScore = 0
     this.allowUnrated = true
     this.minDate = "2003/01/01"
-    this.maxDate = date.getFullYear() + "/" + (date.getMonth()+1) + "/" + date.getDate()
+    this.maxDate = date.yyyymmdd()
     this.genres = new Array()
     for(var i = 0;i<48;i++) this.genres[i]=i
   };
@@ -18,7 +29,7 @@ function NG_API_Connector( api_url = String(document.location).substr(0, String(
     this.maxScore = 5
     this.minScore = 0
     this.minDate = "2003/01/01"
-    this.maxDate = date.getFullYear() + "/" + (date.getMonth()+1) + "/" + date.getDate()
+    this.maxDate = date.yyyymmdd()
   };
   */
   
@@ -42,7 +53,7 @@ function NG_API_Connector( api_url = String(document.location).substr(0, String(
 }
 
 NG_API_Connector.prototype.getTrackURL = function ( id ) {
-  return this._api_url + "/api/track/" + id
+  return this._api_url + "api/track/" + id
 }
 
 NG_API_Connector.prototype.getGenreList = function (){
@@ -79,7 +90,7 @@ NG_API_Connector.prototype.getGenreList = function (){
         error_callback("getGenreList", "Couldn't fetch genre list: HTTP status error " + this.status );
     }
   };
-  xhttp.open("GET", this._api_url + "/api/genres?json", true);
+  xhttp.open("GET", this._api_url + "api/genres?json", true);
   xhttp.send();
 }
 
@@ -97,7 +108,7 @@ NG_API_Connector.prototype.getVersion = function() {
         error_callback("getVersion", "Couldn't fetch version info: HTTP status error " + this.status )
     }
   };
-  xhttp.open("GET", this._api_url + "/api/version", true);
+  xhttp.open("GET", this._api_url + "api/version", true);
   xhttp.send();
 }
 
@@ -107,6 +118,8 @@ NG_API_Connector.prototype.getTracks = function( filter ){
   var end_callback    = this.callbacks.onTracksEnd
   
   var error_callback  = this.callbacks.onError
+  
+  if(typeof filter === 'undefined') filter = {}
   
   function i( json_str ){
     var json = JSON.parse(json_str)
@@ -133,27 +146,9 @@ NG_API_Connector.prototype.getTracks = function( filter ){
         error_callback("getTracks", "Couldn't fetch tracks: HTTP status error " + this.status )
     }
   };
-  xhttp.open("POST", this._api_url + "/api/filter/", true);
+  xhttp.open("POST", this._api_url + "api/filter/", true);
   
-  var request = new Array()
-  if( typeof filter.minDate === "string" )
-    request.push( "minDate=" + filter.minDate )
-  
-  if( typeof filter.minDate === "string" )
-    request.push( "minDate=" + filter.minDate )
-  
-  if( typeof filter.minScore === "number" )
-    request.push( "minScore=" + filter.minScore )
-    
-  if( typeof filter.maxScore === "number" )
-    request.push( "maxScore=" + filter.maxScore )
-  
-  if( typeof filter.allowUnrated === "boolean" && !filter.allowUnrated )
-    request.push( "allowUnrated=false" )
-  
-  request.push( "allowedGenre={\"genres\":" + JSON.stringify(filter.genres) +"}" )
-  
-  xhttp.send( request.join('&') );
+  xhttp.send( "filterObject="+JSON.stringify(filter) );
 }
 
 NG_API_Connector.prototype.getComposerTracks = function( composer_name ){
@@ -188,6 +183,6 @@ NG_API_Connector.prototype.getComposerTracks = function( composer_name ){
         error_callback("getComposerTracks", "Couldn't fetch tracks: HTTP status error " + this.status )
     }
   };
-  xhttp.open("POST", this._api_url + "/api/filter/composer", true);
+  xhttp.open("POST", this._api_url + "api/filter/composer", true);
   xhttp.send( "composer=" + composer_name );
 }

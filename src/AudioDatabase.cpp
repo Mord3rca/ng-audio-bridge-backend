@@ -148,6 +148,13 @@ static const std::string JSONSafe( const std::string &e)
   while( ( pos = result.find("\"", pos+2 ) ) != std::string::npos )
     result.replace(pos, pos+1, "\\\"");
   
+  pos = 0;
+  if( result[0] == '\\' )
+    result.replace(0,1,"\\\\");
+  
+  while( ( pos = result.find("\\", pos+2 ) ) != std::string::npos )
+    result.replace(pos, pos+1, "\\\\");
+  
   return result;
 }
 

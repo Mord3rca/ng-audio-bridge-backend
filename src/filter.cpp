@@ -346,14 +346,18 @@ const std::string APIFilterComposer::getQuery() const noexcept
 
 void APIFilterRange::set( const http::Request &req)
 {
-  unsigned int page = 0;
+  unsigned int page = 0, mul = 100;
   auto page_str = req.getVariable("page");
+  auto mul_str  = req.getVariable("num");
+  
+  if( std::regex_match(mul_str, regnum) )
+    mul = std::atoi( mul_str.c_str() );
   
   if( std::regex_match(page_str, regnum) )
   {
     page = std::atoi( page_str.c_str() );
     
-    m_min = page*100 + 1;
-    m_max = (page+1)*100;
+    m_min = page*mul + 1;
+    m_max = (page+1)*mul;
   }
 }

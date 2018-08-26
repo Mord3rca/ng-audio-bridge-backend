@@ -58,8 +58,9 @@ void AudioServer::OnGet( http::Client &client, const http::Request &req)
       _api_track_random(client, req);
     else
       _api_track_id(client, req);
-    
   }
+  else if( req.getPath() == "/api/list" )
+    _api_list(client, req);
   else if( req.getPath() == "/api/version" )
     _api_version(client);
   else if( req.getPath() == "/api/genres" )
@@ -262,4 +263,30 @@ void AudioServer::_api_genrelist(http::Client &client, const http::Request &req)
       resp.appendData( std::get<1>(j) + ": " + std::to_string( std::get<0>(j) ) + "\n");
   }
   client << resp;
+}
+
+void AudioServer::_api_list(http::Client &client, const http::Request &req)
+{
+  APIFilterRange filter; filter.set(req);
+  
+  if( filter.validate() )
+  {
+    AudioQueryResult rslt = m_db->getViaFilter( filter );
+    
+    if( !rslt.isEmpty() )
+    {
+      http::Response resp;
+      resp.setStatusCode(http::status_code::OK);
+      resp.addHeader("Access-Control-Allow-Origin", "*");
+      resp.addHeader("Content-Type", "application/json");
+      
+      resp.appendData(rslt.toJson());
+      
+      client << resp;
+    }
+    else
+      client << http::genericAnswer[1];
+  }
+  else
+    client << http::genericAnswer[3];
 }

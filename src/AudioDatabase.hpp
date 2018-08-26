@@ -50,16 +50,28 @@ public:
   const AudioQueryResult getViaFilter( const IFilter& );
   
   const std::map<int, std::string> getGenreList();
+  
+  unsigned int getMaxId() const noexcept
+  {return m_info.max_id;}
+  
+  unsigned int getTracksCount() const noexcept
+  {return m_info.count;}
 
 protected:
   static int sqlite3_callback( void*, int, char**, char** );
+  static int sqlite3_info_callback( void*, int, char**, char** );
   static int sqlite3_genre_callback( void*, int, char**, char** );
   
 private:
   int _loadDBInMemory( const std::string& );
   void _createIndex();
-  //const std::string _create_query_from_filter( const filter&);
+  void _getDBInfo();
   sqlite3* m_handler; std::string m_path;
+  
+  struct {
+    unsigned int max_id;
+    unsigned int count;
+  } m_info;
 };
 
 #endif //AUDIO_DATABASE_HPP

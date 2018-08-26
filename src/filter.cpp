@@ -343,3 +343,17 @@ const std::string APIFilterComposer::getQuery() const noexcept
   sqlite3_free(buff);
   return result;
 }
+
+void APIFilterRange::set( const http::Request &req)
+{
+  unsigned int page = 0;
+  auto page_str = req.getVariable("page");
+  
+  if( std::regex_match(page_str, regnum) )
+  {
+    page = std::atoi( page_str.c_str() );
+    
+    m_min = page*100 + 1;
+    m_max = (page+1)*100;
+  }
+}

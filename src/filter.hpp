@@ -93,6 +93,25 @@ public:
   { return "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks ORDER BY RANDOM() LIMIT 1;"; }
 };
 
-static const std::regex regdate("^\\d{4}/\\d{2}/\\d{2}$");
+class APIFilterRange : public IFilter
+{
+public:
+  APIFilterRange() : m_min(0), m_max(0) {}
+  ~APIFilterRange(){}
+  
+  void set( const http::Request& );
+  bool validate() const noexcept
+  { return m_min != 0 && m_max != 0;}
+  
+  const std::string getQuery() const noexcept
+  { return  "SELECT id,title,composer,score,genre,submission_date,url FROM Tracks WHERE id BETWEEN "
+            + std::to_string(m_min) + " AND " + std::to_string(m_max) +";"; }
+
+private:
+  unsigned int m_min, m_max;
+};
+
+static const std::regex regdate ("^\\d{4}/\\d{2}/\\d{2}$");
+static const std::regex regnum  ("\\d*");
 
 #endif //FILTER_HPP

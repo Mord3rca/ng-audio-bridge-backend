@@ -280,7 +280,7 @@ void AudioServer::_api_list(http::Client &client, const http::Request &req)
       resp.addHeader("Access-Control-Allow-Origin", "*");
       resp.addHeader("Content-Type", "application/json");
       
-      resp.appendData(rslt.toJson());
+      resp.appendData( "{\"Result\":" +rslt.toJson() + "}");
       
       client << resp;
     }

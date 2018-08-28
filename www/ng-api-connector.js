@@ -41,6 +41,10 @@ function NG_API_Connector( api_url = document.location ) {
   this.callbacks.onGenreNew     = function( genre ){ console.log(JSON.stringify(genre)) }
   this.callbacks.onGenreEnd     = function(){}
   
+  this.callbacks.onPageBegin   = function(){}
+  this.callbacks.onPageNew     = function( genre ){ console.log(JSON.stringify(genre)) }
+  this.callbacks.onPageEnd     = function(){}
+  
   this.callbacks.onTracksBegin  = function(){}
   this.callbacks.onTracksNew    = function( track ){ console.log(JSON.stringify(track)) }
   this.callbacks.onTracksEnd    = function(){}
@@ -190,4 +194,41 @@ NG_API_Connector.prototype.getComposerTracks = function( composer_name ){
   };
   xhttp.open("POST", this._api_url + "api/filter/composer", true);
   xhttp.send( "composer=" + composer_name );
+}
+
+NG_API_Connector.prototype.getPage = function (page, mul=100){
+  var begin_callback= this.callbacks.onPageBegin
+  var new_callback  = this.callbacks.onPageNew
+  var end_callback  = this.callbacks.onPageEnd
+  
+  var error_callback = this.callbacks.onError
+  
+  function i( obj_json ) {
+    var json = JSON.parse(obj_json)
+    
+    if( typeof json.Result == 'undefined' )
+    {
+      error_callback("getPage", "JSON Parsing error")
+      return;
+    }
+    
+    begin_callback()
+    for( key in json["Result"] ){
+        new_callback(json.Result[key])
+    }
+    end_callback()
+  }
+  
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if( this.readyState==4 )
+    {
+      if( this.status == 200 )
+        i( this.responseText );
+      else
+        error_callback("getPage", "Couldn't fetch page: HTTP status error " + this.status );
+    }
+  };
+  xhttp.open("GET", this._api_url + "api/list?page="+page+"&num="+mul, true);
+  xhttp.send();
 }

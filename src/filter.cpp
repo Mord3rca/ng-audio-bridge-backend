@@ -344,7 +344,7 @@ const std::string APIFilterComposer::getQuery() const noexcept
   return result;
 }
 
-void APIFilterRange::set( const http::Request &req)
+void APIFilterRange::set( const http::Request &req )
 {
   unsigned int page = 0, mul = 100;
   auto page_str = req.getVariable("page");

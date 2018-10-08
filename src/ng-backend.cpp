@@ -30,6 +30,9 @@ static struct {
   
   std::string db_path;
   bool isLive = false;
+  
+  unsigned int thread_number =
+    std::thread::hardware_concurrency();
 } args;
 
 void printHelp(std::ostream& out, const char* name) noexcept
@@ -47,12 +50,15 @@ void printHelp(std::ostream& out, const char* name) noexcept
       << "--live, -s" << std::endl
       << "\tDo not copy DB in RAM (default: false)" << std::endl
       << "--socket, -s <ip4:socket>" << std::endl
-      << "\tSet the listening socket. (default: 0.0.0.0:8080)" << std::endl;
+      << "\tSet the listening socket. (default: 0.0.0.0:8080)" << std::endl
+      << "--thread, -t <num>" << std::endl
+      << "\tSet the number of HTTP Worker. (default: "
+      << std::thread::hardware_concurrency() << ")" << std::endl;
       
   std::exit( 0 );
 }
 
-static const char *short_option = static_cast<const char*>("hBu:d:ls:");
+static const char *short_option = static_cast<const char*>("hBu:d:ls:t:");
 static const struct option long_options[] = {
   {"help",      no_argument,        0, 'h'},
   {"deamonize", no_argument,        0, 'B'},
@@ -60,6 +66,7 @@ static const struct option long_options[] = {
   {"dbpath",    required_argument,  0, 'd'},
   {"live",      no_argument,        0, 'l'},
   {"socket",    required_argument,  0, 's'},
+  {"thread",    required_argument,  0, 't'},
   {0, 0, 0, 0}
 };
 
@@ -104,6 +111,10 @@ static void parse_args(int argc, char **argv)
         args.port  = std::stoi( tmp.substr(pos +1) );
         break;
       }
+      
+      case 't':
+        args.thread_number = std::atoi( optarg );
+        break;
       
       default:
         printHelp(std::cerr, argv[0]);
@@ -172,10 +183,16 @@ static void create_objects_via_args()
   
   Server = new tcp::Server( args.ip,
                             args.port);
-  //Create Worker
-  auto w = new AudioServer();
-  w->setDBController(db);
-  Server->addWorker(w);
+  //Create Workers
+  AudioServer* w = nullptr;
+  
+  for( unsigned int i = 0; i < args.thread_number; i++ )
+  {
+    w = new AudioServer();
+    w->setDBController(db);
+    
+    Server->addWorker(w);
+  }
   
   std::cout << "Server listenning on " << args.ip << ":" << args.port << std::endl;
   

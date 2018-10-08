@@ -1,6 +1,7 @@
 #ifndef AUDIO_BRIDGE_SERVER_HPP
 #define AUDIO_BRIDGE_SERVER_HPP
 
+#include <http/server>
 #include <http/worker>
 
 #include "AudioDatabase.hpp"

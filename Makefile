@@ -5,8 +5,7 @@ CPPFLAGS=-std=c++11 -Wall -Ilibnet/include -I/usr/include/jsoncpp
 LIBS=-lpthread -lnet -lsqlite3 -ljsoncpp
 
 SRCS= src/Audio-Bridge-Server.cpp src/AudioDatabase.cpp \
-			src/filter.cpp src/HTTPServer.cpp src/songItem.cpp src/TCPEventLoop.cpp \
-			src/ng-backend.cpp
+			src/filter.cpp src/songItem.cpp src/ng-backend.cpp
 
 OBJS=$(SRCS:.cpp=.o)
 

@@ -16,8 +16,7 @@ ng-backend: libnet.a $(OBJS)
 	$(CXX) -o ng-backend -Llibnet $(OBJS) $(LIBS)
 
 libnet.a:
-	cd libnet
-	make
+	$(MAKE) -C libnet
 
 .cpp.o:
 	$(CXX) $(CPPFLAGS) -c $< -o $@

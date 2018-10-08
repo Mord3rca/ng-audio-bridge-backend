@@ -13,10 +13,12 @@ extern "C"
 
 #include <csignal> // signal() : To properly free all the ressources.
 
-#include "Audio-Bridge-Server.hpp"
+#include <tcp/server> //tcp::Server
+#include "Audio-Bridge-Server.hpp" //Audio Worker
+
 #include "AudioDatabase.hpp"
 
-AudioServer   *Server = nullptr;
+tcp::Server   *Server = nullptr;
 AudioDatabase *db     = nullptr;
 
 static struct {
@@ -168,9 +170,12 @@ static void create_objects_via_args()
     std::exit(-1);
   }
   
-  Server = new AudioServer( args.ip,
+  Server = new tcp::Server( args.ip,
                             args.port);
-  Server->setDBController(db);
+  //Create Worker
+  auto w = new AudioServer();
+  w->setDBController(db);
+  Server->addWorker(w);
   
   std::cout << "Server listenning on " << args.ip << ":" << args.port << std::endl;
   
@@ -189,7 +194,7 @@ int main( int argc, char *argv[] )
   create_objects_via_args();
   
   std::cout << "Entering server loop..." << std::endl;
-  Server->serve();
+  Server->start();
   
   delete Server;
   delete db;

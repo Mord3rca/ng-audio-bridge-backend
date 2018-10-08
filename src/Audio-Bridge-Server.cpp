@@ -12,7 +12,7 @@ const std::string AudioServer::m_crossdomain =
 AudioServer::AudioServer() : m_db(nullptr)
 {}
 
-AudioServer::AudioServer( const std::string &ip, const unsigned int port ) : http::Server(ip,port)
+AudioServer::AudioServer( const std::string &ip, const unsigned int port )
 {m_db=nullptr;}
 
 AudioServer::~AudioServer()

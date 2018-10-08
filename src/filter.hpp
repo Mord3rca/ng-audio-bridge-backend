@@ -9,8 +9,9 @@
 
 #include <sqlite3.h>
 
+#include <http/server> //http::Request
+
 #include "songItem.hpp"
-#include "HTTPServer.hpp" //http::Request
 
 class IFilter
 {

@@ -1,13 +1,14 @@
 #ifndef AUDIO_BRIDGE_SERVER_HPP
 #define AUDIO_BRIDGE_SERVER_HPP
 
-#include "HTTPServer.hpp"
+#include <http/worker>
+
 #include "AudioDatabase.hpp"
 #include "filter.hpp"
 
 #include <json/json.h>
 
-class AudioServer : public http::Server
+class AudioServer : public http::Worker
 {
   static const std::string m_crossdomain;
 public:

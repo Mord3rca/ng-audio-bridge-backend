@@ -139,25 +139,6 @@ AudioQueryResult::~AudioQueryResult()
     delete i;
 }
 
-static const std::string JSONSafe( const std::string &e)
-{
-  std::string result = e; std::string::size_type pos = 0;
-  if( result[0] == '\\' )
-    result.replace(0,1,"\\\\");
-  
-  while( ( pos = result.find("\\", pos+2 ) ) != std::string::npos )
-    result.replace(pos, pos+1, "\\\\");
-  
-  pos = 0;
-  if( result[0] == '"' )
-    result.replace(0,1,"\\\"");
-    
-  while( ( pos = result.find("\"", pos+2 ) ) != std::string::npos )
-    result.replace(pos, pos+1, "\\\"");
-  
-  return result;
-}
-
 const std::string AudioQueryResult::toJson() const
 {
   std::ostringstream rslt;
@@ -167,8 +148,8 @@ const std::string AudioQueryResult::toJson() const
   {
     const SongItem *snd = m_songs[i];
     rslt  << "{\"id\":" << snd->getId()
-          << ",\"composer\":\"" << JSONSafe( snd->getComposerName() ) << "\""
-          << ",\"title\":\"" << JSONSafe( snd->getSongName() ) << "\""
+          << ",\"composer\":\"" << snd->getComposerName() << "\""
+          << ",\"title\":\"" << snd->getSongName() << "\""
           << ",\"score\":" << snd->getScore()
           << ",\"genre\":\"" << genreToStr( snd->getGenre() ) << "\""
           << ",\"date\":\"" << snd->getSubmissionDate() << "\""

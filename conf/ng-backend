@@ -1,0 +1,6 @@
+#!/sbin/openrc-run
+
+command=/usr/bin/ng-backend
+pidfile=/var/run/ng-backend/ng-backend.pid
+command_args='-B -s "127.0.0.1:8080" -d /usr/share/ng-backend/data.db -t 2'
+stopsig=INT

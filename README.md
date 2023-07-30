@@ -1,5 +1,24 @@
 # ng-audio-backend
-The backend of [NG Audio Bridge](https://www.newgrounds.com/portal/view/553053).
+
+A backend compatible with [NG Audio Bridge](https://www.newgrounds.com/portal/view/553053) indexing newgrounds audio files.
+
+## Build
+
+To build this project, you need the following dependencies:
+
+* [libpistache](https://github.com/pistacheio/pistache/)
+* jsoncpp
+* sqlite3
+
+Build use `cmake`:
+
+```sh
+$ mkdir build
+$ cd build
+$ cmake <path/to/ng-audio-backend>
+$ make
+# make install
+```
 
 ## Network Modification
 
@@ -21,12 +40,11 @@ For Windows: `%WINDIR%\\System32\\Drivers\\etc\\hosts`
 
 ## Functionality
 
-* All Song are now indexed (update will be done weekly)
-
 * Fully Compatible with [NG Audio Bridge](https://www.newgrounds.com/portal/view/553053)
+* Custom API more RESTful compliant
 
 ## Incomming
 
-* Javascript connector for the api
+* Crawler to update Tracks periodicly
 
-* C++ Crawler to update Tracks periodicly
+

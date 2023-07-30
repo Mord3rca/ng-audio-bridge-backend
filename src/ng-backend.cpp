@@ -1,9 +1,4 @@
-#include <iostream>
-
-#include "AudioServer.hpp"
-
-extern "C"
-{
+extern "C" {
   #include <unistd.h>
   #include <getopt.h>
 
@@ -11,6 +6,10 @@ extern "C"
   #include <pwd.h>
   #include <grp.h>
 }
+
+#include <iostream>
+
+#include "AudioServer.hpp"
 
 static struct {
     bool isDaemon = false;
@@ -25,8 +24,7 @@ static struct {
     unsigned int thread_number = 2;
 } args;
 
-void printHelp(std::ostream& out, const char* name) noexcept
-{
+void printHelp(std::ostream& out, const char* name) noexcept {
     out << "Usage: " << (name != nullptr ? name : "ng-audio-backend") << " [options]" << std::endl << std::endl
         << "Options:" << std::endl
         << "--help, -h" << std::endl
@@ -44,7 +42,7 @@ void printHelp(std::ostream& out, const char* name) noexcept
         << "--thread, -t <num>" << std::endl
         << "\tSet the number of HTTP Worker. (default: 2)" << std::endl;
 
-    std::exit( 0 );
+    std::exit(0);
 }
 
 static const char *short_option = static_cast<const char*>("hBu:d:ls:t:");
@@ -59,19 +57,16 @@ static const struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-static void parse_args(int argc, char **argv)
-{
+static void parse_args(int argc, char **argv) {
     int option_index = 0; int c;
 
-    while( true )
-    {
+    while (true) {
         c = getopt_long(argc, argv, short_option, long_options, &option_index);
 
-        if( c == -1 )
+        if (c == -1)
             break;
 
-        switch( c )
-        {
+        switch (c) {
             case 'h':
                 printHelp(std::cout, argv[0]);
                 break;
@@ -91,18 +86,17 @@ static void parse_args(int argc, char **argv)
             case 's':
             {
                 std::string tmp(optarg); std::string::size_type pos = tmp.find(':');
-                if( pos == std::string::npos )
-                {
+                if (pos == std::string::npos) {
                     std::cerr << "[-] Invalid socket format" << std::endl;
                     printHelp(std::cerr, argv[0]);
                 }
                 args.ip    = tmp.substr(0, pos);
-                args.port  = std::stoi( tmp.substr(pos +1) );
+                args.port  = std::stoi(tmp.substr(pos +1));
                 break;
             }
 
             case 't':
-                args.thread_number = std::atoi( optarg );
+                args.thread_number = std::atoi(optarg);
                 break;
 
             case 'l':
@@ -116,47 +110,50 @@ static void parse_args(int argc, char **argv)
     }
 }
 
-//You really have to check your privilege !
-static void drop_privilege(const char* user)
-{
-    if( ! user || getuid() != 0 )
+// You really have to check your privilege !
+static void drop_privilege(const char* user) {
+    char *buf;
+    struct passwd pw;
+    struct passwd *result;
+    int64_t bufsize;
+
+    if (!user || getuid() != 0)
         return;
 
-    struct passwd *pw = getpwnam(user);
-    if(!pw)
-    {
+    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufsize == -1)
+        bufsize = 16384;
+
+    buf = new char[bufsize];
+    getpwnam_r(user, &pw, buf, bufsize, &result);
+    if (result == nullptr) {
         std::cerr << "[-] Can't drop root privilege..." << std::endl;
         std::exit(-1);
     }
 
-    if( initgroups( pw->pw_name, pw->pw_gid ) != 0 || setgid( pw->pw_gid ) !=0 || setuid( pw->pw_uid ) != 0 )
-    {
-        std::cerr << "[-] Couldn't change to " << user << " uid=" << pw->pw_uid << " gid=" << pw->pw_gid <<std::endl;
+    if (initgroups(pw.pw_name, pw.pw_gid) != 0 || setgid(pw.pw_gid) !=0 || setuid(pw.pw_uid) != 0) {
+        std::cerr << "[-] Couldn't change to " << user << " uid=" << pw.pw_uid << " gid=" << pw.pw_gid <<std::endl;
         std::exit(-1);
     }
 
-    if( setuid(0) != -1 || setgid(0) != -1 )
-    {
+    if (setuid(0) != -1 || setgid(0) != -1) {
         std::cout << "[-] CRITICAL: Can become root again after dropping privilege..." << std::endl;
         std::exit(-1);
     }
 }
 
-int main( int argc, char *argv[] )
-{
+int main(int argc, char *argv[]) {
     parse_args(argc, argv);
 
-    if( args.isDaemon )
-    {
-        drop_privilege( args.user.c_str() );
+    if (args.isDaemon) {
+        drop_privilege(args.user.c_str());
         daemon(0, 0);
     }
 
     Pistache::Address addr(args.ip, args.port);
     AudioServer srv(addr);
 
-    if(!srv.getDatabase()->openDBFile(args.db_path, args.isLive))
-    {
+    if (!srv.getDatabase()->openDBFile(args.db_path, args.isLive)) {
         std::cerr << "Can't open DB file. Exiting..." << std::endl;
         std::exit(-1);
     }

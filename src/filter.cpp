@@ -31,14 +31,14 @@ AudioBridgeFilter::AudioBridgeFilter() :  m_minscore(0), m_maxscore(5),
 AudioBridgeFilter::~AudioBridgeFilter()
 {}
 
-void AudioBridgeFilter::set( const http::Request &req )
+void AudioBridgeFilter::set(const Pistache::Rest::Request &req)
 {
-  
   Json::CharReaderBuilder builder; Json::Value root;
-  std::string jsonstr = req.getVariable("filterJSON");
-  if( jsonstr.empty() )
+  auto arg = req.query().get("filterJSON");
+  if(!arg)
     return;
 
+  auto jsonstr = arg.value();
   Json::CharReader *json_read = builder.newCharReader();
   std::string err;
 
@@ -78,7 +78,6 @@ void AudioBridgeFilter::set( const http::Request &req )
     for( auto i : root["genres"] )
     {
       std::string _g = i.asString();
-      http::unescape(_g);
       
       enum genre gr = strToGenre( _g );
       m_allowedgenre.push_back( gr );
@@ -152,21 +151,21 @@ APIFilter::APIFilter() :  m_mindate("2003/01/01"), m_maxdate(""),
 
 APIFilter::~APIFilter(){}
 
-void APIFilter::set(const http::Request &req)
+void APIFilter::set(const Pistache::Rest::Request &req)
 {
-  if( req.isVarExist("filterObject") )
+  if( req.hasParam("filterObject") )
     set_json(req);
   else
     set_post(req);
 }
 
-void APIFilter::set_json( const http::Request &req )
+void APIFilter::set_json(const Pistache::Rest::Request &req)
 {
   Json::CharReaderBuilder builder; Json::CharReader *reader = builder.newCharReader();
   std::string json_err; Json::Value root;
-  const char *stream = req.getVariable("filterObject").c_str();
+  const char *stream = req.param("filterObject").as<std::string>().c_str();
   
-  if( !reader->parse( stream, stream + req.getVariable("filterObject").length(),
+  if( !reader->parse( stream, stream + req.param("filterObject").as<std::string>().length(),
                       &root, &json_err) )
   {
     delete reader;
@@ -199,19 +198,19 @@ void APIFilter::set_json( const http::Request &req )
   _read_genres_array(root);
 }
 
-void APIFilter::set_post( const http::Request &req )
+void APIFilter::set_post(const Pistache::Rest::Request &req)
 {
-  if( req.isVarExist("minDate") )
-    m_mindate = req.getVariable("minDate");
+  if( req.hasParam("minDate") )
+    m_mindate = req.param("minDate").as<std::string>();
   
-  if( req.isVarExist("maxDate") )
-    m_maxdate = req.getVariable("maxDate");
+  if( req.hasParam("maxDate") )
+    m_maxdate = req.param("maxDate").as<std::string>();
   
-  if( req.isVarExist("minScore") )
-    m_minscore = std::strtof( req.getVariable("minScore").c_str(), nullptr );
+  if( req.hasParam("minScore") )
+    m_minscore = req.param("minScore").as<float>();
   
-  if( req.isVarExist("maxScore") )
-    m_maxscore = std::strtof( req.getVariable("maxScore").c_str(), nullptr );
+  if( req.hasParam("maxScore") )
+    m_maxscore = req.param("maxScore").as<float>();
   
   if( m_minscore > m_maxscore )
   {
@@ -220,12 +219,12 @@ void APIFilter::set_post( const http::Request &req )
     m_minscore = tmp;
   }
   
-  if( req.isVarExist("allowUnrated") )
-    m_allowUnrated = (req.getVariable("allowUnrated") == "true");
+  if( req.hasParam("allowUnrated") )
+    m_allowUnrated = req.param("allowUnrated").as<bool>();
   
-  if( !req.isVarExist("allowedGenre") ) return;
+  if( !req.hasParam("allowedGenre") ) return;
   
-  std::string allowedgenre_str = req.getVariable("allowedGenre"), err;
+  std::string allowedgenre_str = req.param("allowedGenre").as<std::string>(), err;
   Json::CharReaderBuilder builder; Json::CharReader *reader = builder.newCharReader();
   Json::Value root;
   
@@ -325,9 +324,9 @@ APIFilterComposer::APIFilterComposer(){}
 
 APIFilterComposer::~APIFilterComposer(){}
 
-void APIFilterComposer::set(const http::Request &req)
+void APIFilterComposer::set(const Pistache::Rest::Request &req)
 {
-  m_composer = req.getVariable("composer");
+  m_composer = req.param("composer").as<std::string>();
 }
 
 bool APIFilterComposer::validate() const noexcept
@@ -344,11 +343,11 @@ const std::string APIFilterComposer::getQuery() const noexcept
   return result;
 }
 
-void APIFilterRange::set( const http::Request &req )
+void APIFilterRange::set(const Pistache::Rest::Request &req)
 {
   unsigned int page = 0, mul = 100;
-  auto page_str = req.getVariable("page");
-  auto mul_str  = req.getVariable("num");
+  auto page_str = req.param("page").as<std::string>();
+  auto mul_str  = req.param("num").as<std::string>();
   
   if( std::regex_match(mul_str, regnum) )
     mul = std::atoi( mul_str.c_str() );

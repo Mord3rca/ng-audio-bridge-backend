@@ -9,7 +9,7 @@
 
 #include <sqlite3.h>
 
-#include <http/server> //http::Request
+#include <pistache/router.h>
 
 #include "songItem.hpp"
 
@@ -19,7 +19,7 @@ public:
   IFilter(){}
   ~IFilter(){}
   
-  virtual void set(const http::Request&) = 0;
+  virtual void set(const Pistache::Rest::Request&) = 0;
   virtual bool validate() const noexcept = 0;
   
   virtual const std::string getQuery() const noexcept = 0;
@@ -31,7 +31,7 @@ public:
   AudioBridgeFilter();
   ~AudioBridgeFilter();
   
-  void set(const http::Request&);
+  void set(const Pistache::Rest::Request&);
   bool validate() const noexcept;
   
   const std::string getQuery() const noexcept;
@@ -49,14 +49,14 @@ public:
   APIFilter();
   ~APIFilter();
   
-  void set(const http::Request&);
+  void set(const Pistache::Rest::Request&);
   bool validate() const noexcept;
   
   const std::string getQuery() const noexcept;
   
 protected:
-  void set_json(const http::Request&);
-  void set_post(const http::Request&);
+  void set_json(const Pistache::Rest::Request&);
+  void set_post(const Pistache::Rest::Request&);
 private:
   void _read_genres_array( const Json::Value& );
   std::string m_mindate, m_maxdate;
@@ -72,7 +72,7 @@ public:
   APIFilterComposer();
   ~APIFilterComposer();
   
-  void set(const http::Request&);
+  void set(const Pistache::Rest::Request&);
   bool validate() const noexcept;
   
   const std::string getQuery() const noexcept;
@@ -87,7 +87,7 @@ public:
   APIFilterRandom(){}
   ~APIFilterRandom(){}
   
-  void set( const http::Request& ){}
+  void set( const Pistache::Rest::Request& ){}
   bool validate() const noexcept { return true; }
   
   const std::string getQuery() const noexcept
@@ -100,7 +100,7 @@ public:
   APIFilterRange() : m_min(0), m_max(0) {}
   ~APIFilterRange(){}
   
-  void set( const http::Request& );
+  void set( const Pistache::Rest::Request& );
   bool validate() const noexcept
   { return m_min != 0 && m_max != 0;}
   

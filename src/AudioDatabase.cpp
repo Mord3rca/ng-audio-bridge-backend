@@ -1,5 +1,7 @@
 #include "AudioDatabase.hpp"
 
+#include <json/json.h>
+
 AudioDatabase::AudioDatabase() : m_handler(nullptr), m_path("")
 {}
 
@@ -126,22 +128,20 @@ AudioQueryResult::~AudioQueryResult() {
 }
 
 const std::string AudioQueryResult::toJson() const {
-    std::ostringstream rslt;
+    Json::FastWriter writer;
+    Json::Value root, item;
 
-    rslt << '[';
-    for (unsigned int i = 0; i < m_songs.size(); i++) {
-        const SongItem *snd = m_songs[i];
-        rslt << "{\"id\":" << snd->getId()
-             << ",\"composer\":\"" << snd->getComposerName() << "\""
-             << ",\"title\":\"" << snd->getSongName() << "\""
-             << ",\"score\":" << snd->getScore()
-             << ",\"genre\":\"" << genreToStr(snd->getGenre()) << "\""
-             << ",\"date\":\"" << snd->getSubmissionDate() << "\""
-             << ",\"url\":\""<< snd->getURL() << "\"}";
-        if (i != m_songs.size()-1)
-            rslt << ", ";
+    for (const auto snd : m_songs) {
+        item["id"] = snd->getId();
+        item["url"] = snd->getURL();
+        item["date"] = snd->getSubmissionDate();
+        item["title"] = snd->getSongName();
+        item["score"] = snd->getScore();
+        item["genre"] = genreToStr(snd->getGenre());
+        item["composer"] = snd->getComposerName();
+
+        root.append(item);
     }
-    rslt << ']';
 
-    return rslt.str();
+    return writer.write(root);
 }

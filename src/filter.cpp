@@ -89,7 +89,7 @@ bool AudioBridgeFilter::validate() const noexcept {
 
 const std::string AudioBridgeFilter::getQuery() const noexcept {
     std::ostringstream sql_query; std::vector<std::string> conditions;
-    sql_query << "SELECT id,title,composer,score,genre,submission_date,url"
+    sql_query << "SELECT id,title,composer,score,genre,submission_date,url "
               << "FROM Tracks WHERE id IN (SELECT id FROM Tracks";
 
     if (!m_maxdate.empty() && m_mindate != "2003/01/01")

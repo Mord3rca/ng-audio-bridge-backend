@@ -5,7 +5,6 @@ extern "C" {
     #include <sqlite3.h>
 }
 
-#include <json/json.h>
 #include <pistache/router.h>
 
 #include <regex>
@@ -52,12 +51,7 @@ class APIFilter : public IFilter {
 
     const std::string getQuery() const noexcept;
 
- protected:
-    void set_json(const Pistache::Rest::Request&);
-    void set_post(const Pistache::Rest::Request&);
-
  private:
-    void _read_genres_array(const Json::Value&);
     std::string m_mindate, m_maxdate;
     float m_minscore, m_maxscore;
     bool m_allowUnrated;
@@ -108,7 +102,6 @@ class APIFilterRange : public IFilter {
     unsigned int m_min, m_max;
 };
 
-static const std::regex regnum("\\d*");
 static const std::regex regdate("^\\d{4}/\\d{2}/\\d{2}$");
 
 #endif  // SRC_FILTER_HPP_

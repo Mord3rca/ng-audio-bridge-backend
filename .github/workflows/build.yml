@@ -1,0 +1,34 @@
+name: Builder
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies from APT
+      run: |
+        sudo apt update
+        sudo apt install libjsoncpp-dev libsqlite3-dev meson
+    - name: Install dependencies from Github Repo
+      run: |
+        workdir=$(mktemp -d)
+        pistache_revision="494e1bca9d435fbc6a81a56b365b953a2b63ac71"
+        git clone https://github.com/pistacheio/pistache.git "${workdir}"
+        cd "${workdir}"
+        git checkout "${pistache_revision}"
+        meson setup build --buildtype=release --prefix="/usr" -DPISTACHE_USE_SSL=true
+        meson compile -C build
+        sudo meson install -C build
+    - name: Building
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make

@@ -40,7 +40,7 @@ void AudioBridgeFilter::set(const Pistache::Rest::Request &req) {
     Json::CharReader *json_read = builder.newCharReader();
     std::string err;
 
-    if (!json_read->parse(jsonstr.c_str(), jsonstr.c_str() + jsonstr.length() , &root, &err)) {
+    if (!json_read->parse(jsonstr.c_str(), jsonstr.c_str() + jsonstr.length(), &root, &err)) {
         delete json_read;
         return;
     }
@@ -102,13 +102,10 @@ const std::string AudioBridgeFilter::getQuery() const noexcept {
         }
     }
 
-    if (!conditions.empty())
-        sql_query << " WHERE ";
-
-    for (unsigned int i = 0; i < conditions.size(); i++) {
-        sql_query << conditions[i];
-        if (i != conditions.size()-1)
-            sql_query << " AND ";
+    if (!conditions.empty()) sql_query << " WHERE ";
+    for (std::vector<std::string>::const_iterator i = conditions.begin(); i != conditions.end(); i++) {
+        sql_query << *i;
+        if (i != conditions.end()) sql_query << " AND ";
     }
 
     sql_query << " ORDER BY RANDOM() LIMIT 25);";

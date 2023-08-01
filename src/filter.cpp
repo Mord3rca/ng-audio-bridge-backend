@@ -223,9 +223,8 @@ bool APIFilterComposer::validate() const noexcept {
 
 const std::string APIFilterComposer::getQuery() const noexcept {
     std::string result; char *buff;
-    buff = sqlite3_mprintf("SELECT id,title,composer,score,genre,submission_date,url"
-                           "FROM Tracks WHERE id IN (SELECT id FROM Tracks WHERE composer"
-                           "LIKE \"%q\");", m_composer.c_str());
+    buff = sqlite3_mprintf("SELECT id,title,composer,score,genre,submission_date,url "
+                           "FROM Tracks WHERE composer LIKE '%q';", m_composer.c_str());
     result = buff;
     sqlite3_free(buff);
     return result;

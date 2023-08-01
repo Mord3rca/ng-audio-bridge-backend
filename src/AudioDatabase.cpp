@@ -21,19 +21,18 @@ bool AudioDatabase::openDBFile(const std::string& filename, bool live) {
               sqlite3_open_v2(filename.c_str(), &m_handler, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nullptr)
               : _loadDBInMemory(filename);
 
-    if (err == SQLITE_OK) {
-        if (!live) _createIndex();
-        _getDBInfo();
-    }
+    if (err != SQLITE_OK)
+        return false;
 
-  return err == SQLITE_OK;
+    if (!live) _createIndex();
+    _getDBInfo();
+
+    return true;
 }
 
 void AudioDatabase::reload() {
     if (m_handler) sqlite3_close_v2(m_handler);
-
-    if (this->openDBFile(m_path))
-        _getDBInfo();
+    this->openDBFile(m_path);
 }
 
 const AudioQueryResult AudioDatabase::getSongByID(const unsigned int id) {

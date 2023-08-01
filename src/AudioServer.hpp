@@ -30,9 +30,8 @@ class AudioServer {
     void getGenres(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getTrackById(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getRandomTrack(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
-
-    void postFilter(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
-    void postFilterComposer(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
+    void getFilter(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
+    void getFilterComposer(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
 
     Pistache::Rest::Router router;
     std::shared_ptr<Pistache::Http::Endpoint> httpEndpoint;

@@ -52,20 +52,19 @@ void AudioServer::setupRoutes() {
     Routes::Get(router, "/api/version", Routes::bind(&AudioServer::getVersion, this));
     Routes::Get(router, "/api/track/:id", Routes::bind(&AudioServer::getTrackById, this));
     Routes::Get(router, "/api/track/random", Routes::bind(&AudioServer::getRandomTrack, this));
-
-    Routes::Post(router, "/api/filter", Routes::bind(&AudioServer::postFilter, this));
-    Routes::Post(router, "/api/filter/composer", Routes::bind(&AudioServer::postFilterComposer, this));
+    Routes::Get(router, "/api/filter", Routes::bind(&AudioServer::getFilter, this));
+    Routes::Get(router, "/api/filter/composer", Routes::bind(&AudioServer::getFilterComposer, this));
 }
 
 void AudioServer::getVersion(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
-    response.send(Http::Code::Ok, "0.1", MIME(Text, Plain));
+    response.send(Http::Code::Ok, "{\"version\": \"0.1\"}", MIME(Application, Json));
 }
 
 void AudioServer::getCrossdomain(const Rest::Request& request, Http::ResponseWriter response) {
     response.send(Http::Code::Ok, _crossdomain, MIME(Text, Xml));
 }
 
-void AudioServer::postAudioBridgeFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+void AudioServer::getAudioBridgeFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     AudioBridgeFilter filter; filter.set(req);
 
     if (!filter.validate()) {
@@ -123,7 +122,7 @@ void AudioServer::getGenres(const Pistache::Rest::Request &req, Pistache::Http::
     response.send(Http::Code::Ok, "{\"genres\": " + writer.write(root) + "}", MIME(Application, Json));
 }
 
-void AudioServer::postFilterComposer(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+void AudioServer::getFilterComposer(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     APIFilterComposer filter; filter.set(req);
 
     if (!filter.validate()) {

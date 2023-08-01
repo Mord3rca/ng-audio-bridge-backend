@@ -16,7 +16,7 @@ Get the genre list in TXT format. Add "?json" at the end of the URI to get it in
 
 Get the version of the software
 
-#### `POST /api/filter/`
+#### `GET /api/filter/`
 
 Get at max 25 Track info matching your filter, return a JSON Array which contain Tracks info
 
@@ -45,6 +45,6 @@ minDate         | Date String         | Set the minimum submission date         
 maxDate         | Date String         | Set the maximum submission date                         | ""
 genres          | Array of string     | Array of genre's string allowed                         | All selected
 
-#### `POST /api/filter/composer`
+#### `GET /api/filter/composer`
 
 This will list all Track of a composer. The composer name should be in the "composer" variable of the POST request.

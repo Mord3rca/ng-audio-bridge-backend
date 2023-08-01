@@ -83,7 +83,7 @@ void AudioServer::getAudioBridgeMp3(const Pistache::Rest::Request &req, Pistache
         return;
     }
 
-    response.headers().add<Http::Header::Location>(rslt[0].getURL());
+    response.headers().add<Http::Header::Location>(rslt[0].url());
     response.send(Http::Code::Moved_Permanently);
 }
 
@@ -94,7 +94,7 @@ void AudioServer::getTrackById(const Pistache::Rest::Request &req, Pistache::Htt
         return;
     }
 
-    response.headers().add<Http::Header::Location>(rslt[0].getURL());
+    response.headers().add<Http::Header::Location>(rslt[0].url());
     response.send(Http::Code::Moved_Permanently);
 }
 
@@ -106,7 +106,7 @@ void AudioServer::getRandomTrack(const Pistache::Rest::Request &req, Pistache::H
         return;
     }
 
-    response.headers().add<Http::Header::Location>(rslt[0].getURL());
+    response.headers().add<Http::Header::Location>(rslt[0].url());
     response.send(Http::Code::Moved_Permanently);
 }
 

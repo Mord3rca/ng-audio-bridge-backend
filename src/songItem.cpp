@@ -164,20 +164,14 @@ SongItem::SongItem(int argc, char **argv, char **azColumn) : SongItem() {
         fmap[azColumn[count]](argv[count] != nullptr ? argv[count] : "");
 }
 
-SongItem::~SongItem() {}
-
-bool SongItem::operator==(const SongItem& s) const noexcept {
-    return s.getId() == this->getId();
-}
-
 std::ostream& operator<<(std::ostream& out, const SongItem& e) {
-    out << "Id:       " << e.getId() << std::endl
-        << "Name:     " << e.getSongName() << std::endl
-        << "Composer: " << e.getComposerName() << std::endl
-        << "Score:    " << e.getScore() << std::endl
-        << "Genre:    " << genreToStr(e.getGenre())
-                        << " (" + genreToGroupStr(e.getGenre()) +")" << std::endl
-        << "URL:      " << e.getURL() << std::endl;
+    out << "Id:       " << e.id() << std::endl
+        << "Name:     " << e.title() << std::endl
+        << "Composer: " << e.composer() << std::endl
+        << "Score:    " << e.score() << std::endl
+        << "Genre:    " << genreToStr(e.genre())
+                        << " (" + genreToGroupStr(e.genre()) +")" << std::endl
+        << "URL:      " << e.url() << std::endl;
 
     return out;
 }

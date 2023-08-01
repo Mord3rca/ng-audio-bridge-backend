@@ -136,4 +136,14 @@ void AudioServer::postFilterComposer(const Pistache::Rest::Request &req, Pistach
     response.send(Http::Code::Ok, "{\"Tracks\":" + rslt.toJson() + "}", MIME(Application, Json));
 }
 
-void AudioServer::postFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {}
+void AudioServer::postFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    APIFilter filter; filter.set(req);
+
+    if (!filter.validate()) {
+        response.send(Http::Code::Internal_Server_Error, "Cannot validate filter");
+        return;
+    }
+
+    auto rslt = m_db->getViaFilter(filter);
+    response.send(Http::Code::Ok, "{\"Tracks\":" + rslt.toJson() + "}", MIME(Application, Json));
+}

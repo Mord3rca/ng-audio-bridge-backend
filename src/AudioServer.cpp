@@ -1,7 +1,8 @@
 #include "AudioServer.hpp"
 
+#include <json/json.h>
+
 #include <string>
-#include <sstream>
 
 using namespace Pistache;
 
@@ -111,16 +112,15 @@ void AudioServer::getRandomTrack(const Pistache::Rest::Request &req, Pistache::H
 }
 
 void AudioServer::getGenres(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
-    std::stringstream stream;
-    stream << "{\"genres\":[";
+    Json::FastWriter writer;
+    Json::Value root, value;
     for (auto j : m_db->getGenreList()) {
-        stream  << "{\"id\": " << std::to_string(std::get<0>(j))
-                << ", \"name\": \"" << std::get<1>(j) << "\""
-                << "}, ";
-    }
-    stream << "{}]}";
+        value["id"] = std::get<1>(j);
+        value["name"] = std::to_string(std::get<0>(j));
 
-    response.send(Http::Code::Ok, stream.str(), MIME(Application, Json));
+        root.append(value);
+    }
+    response.send(Http::Code::Ok, "{\"genres\": " + writer.write(root) + "}", MIME(Application, Json));
 }
 
 void AudioServer::postFilterComposer(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
@@ -132,7 +132,6 @@ void AudioServer::postFilterComposer(const Pistache::Rest::Request &req, Pistach
     }
 
     auto rslt = m_db->getViaFilter(filter);
-
     response.send(Http::Code::Ok, "{\"Tracks\":" + rslt.toJson() + "}", MIME(Application, Json));
 }
 

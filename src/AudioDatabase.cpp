@@ -131,13 +131,13 @@ const std::string AudioQueryResult::toJson() const {
     Json::Value root, item;
 
     for (const auto snd : m_songs) {
-        item["id"] = snd->getId();
-        item["url"] = snd->getURL();
-        item["date"] = snd->getSubmissionDate();
-        item["title"] = snd->getSongName();
-        item["score"] = snd->getScore();
-        item["genre"] = genreToStr(snd->getGenre());
-        item["composer"] = snd->getComposerName();
+        item["id"] = snd->id();
+        item["url"] = snd->url();
+        item["date"] = snd->date();
+        item["title"] = snd->title();
+        item["score"] = snd->score();
+        item["genre"] = genreToStr(snd->genre());
+        item["composer"] = snd->composer();
 
         root.append(item);
     }

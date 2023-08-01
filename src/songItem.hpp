@@ -46,28 +46,28 @@ class SongItem {
  public:
     SongItem();
     SongItem(int, char**, char**);
-    ~SongItem();
 
-    bool operator==(const SongItem&) const noexcept;
+    bool operator==(const SongItem& s) const noexcept
+    {return s.id() == this->id();}
 
-    const unsigned int getId() const noexcept
+    const unsigned int id() const noexcept
     {return m_id;}
 
-    const std::string& getSongName() const noexcept
+    const std::string& title() const noexcept
     {return m_title;}
-    const std::string& getComposerName() const noexcept
+    const std::string& composer() const noexcept
     {return m_composerName;}
 
-    const float getScore() const noexcept
+    const float score() const noexcept
     {return m_score;}
 
-    const enum genre&     getGenre() const noexcept
+    const enum genre& genre() const noexcept
     {return m_genre;}
 
-    const std::string& getSubmissionDate() const noexcept
+    const std::string& date() const noexcept
     {return m_date;}
 
-    const std::string& getURL() const noexcept
+    const std::string& url() const noexcept
     {return m_path;}
 
     friend std::ostream& operator<<(std::ostream&, const SongItem&);

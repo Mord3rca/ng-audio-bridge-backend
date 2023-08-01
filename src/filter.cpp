@@ -1,5 +1,7 @@
 #include "filter.hpp"
 
+#include <json/json.h>
+
 static std::vector<enum genre> default_allowed_genre = {
     genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
 
@@ -23,6 +25,17 @@ static std::vector<enum genre> default_allowed_genre = {
     genre::INFORMATIONAL, genre::SPOKEN_WORLD, genre::VOICE_DEMO
 };
 
+Json::Value readJSONFromRequest(const Pistache::Rest::Request &req) {
+    Json::CharReaderBuilder builder; Json::Value root;
+    Json::CharReader *j = builder.newCharReader();
+    const char *body = req.body().c_str();
+    std::string err;
+
+    j->parse(body, body + req.body().length(), &root, &err);
+    delete j;
+    return root;
+}
+
 AudioBridgeFilter::AudioBridgeFilter() :
     m_minscore(0), m_maxscore(5),
     m_mindate("2003/01/01"),
@@ -40,12 +53,8 @@ void AudioBridgeFilter::set(const Pistache::Rest::Request &req) {
     Json::CharReader *json_read = builder.newCharReader();
     std::string err;
 
-    if (!json_read->parse(jsonstr.c_str(), jsonstr.c_str() + jsonstr.length(), &root, &err)) {
-        delete json_read;
-        return;
-    }
-
-    delete json_read;
+    if (!json_read->parse(jsonstr.c_str(), jsonstr.c_str() + jsonstr.length(), &root, &err))
+        goto end;
 
     m_minscore = root.get("minScore", 0).asFloat();
     m_maxscore = root.get("maxScore", 5).asFloat();
@@ -64,6 +73,9 @@ void AudioBridgeFilter::set(const Pistache::Rest::Request &req) {
         for (auto i : root["genres"])
             m_allowedgenre.push_back(strToGenre(i.asString()));
     }
+
+end:
+    delete json_read;
 }
 
 bool AudioBridgeFilter::validate() const noexcept {
@@ -123,94 +135,23 @@ APIFilter::APIFilter() :
 APIFilter::~APIFilter() {}
 
 void APIFilter::set(const Pistache::Rest::Request &req) {
-    if (req.hasParam("filterObject"))
-        set_json(req);
-    else
-        set_post(req);
-}
+    Json::Value root = readJSONFromRequest(req);
 
-void APIFilter::set_json(const Pistache::Rest::Request &req) {
-    Json::CharReaderBuilder builder; Json::CharReader *reader = builder.newCharReader();
-    std::string json_err; Json::Value root;
-    const char *stream = req.param("filterObject").as<std::string>().c_str();
+    m_mindate = root.get("minDate", "2003/01/01").asString();
+    m_maxdate = root.get("maxDate", "").asString();
+    m_minscore = root.get("minScore", 0).asFloat();
+    m_maxscore = root.get("maxScore", 5).asFloat();
+    m_allowUnrated = root.get("allowUnrated", true).asBool();
 
-    if (!reader->parse(stream, stream + req.param("filterObject").as<std::string>().length(),
-                      &root, &json_err)) {
-        delete reader;
-        return;
-    }
-    delete reader;
+    if (!root["genres"].isArray()) return;
 
-    if (root["minDate"] != Json::Value::nullSingleton() && root["minDate"].isString())
-        m_mindate = root["minDate"].asString();
+    m_allowedgenre.clear();
+    for (auto i : root["genres"]) {
+        if (!i.isInt()) continue;
 
-    if (root["maxDate"] != Json::Value::nullSingleton() && root["maxDate"].isString())
-        m_maxdate = root["maxDate"].asString();
-
-    if (root["minScore"] != Json::Value::nullSingleton() && root["minScore"].isNumeric())
-        m_minscore = root["minScore"].asFloat();
-
-    if (root["maxScore"] != Json::Value::nullSingleton() && root["maxScore"].isNumeric())
-        m_maxscore = root["maxScore"].asFloat();
-
-    if (m_minscore > m_maxscore) {
-        float tmp = m_maxscore;
-        m_maxscore = m_minscore;
-        m_minscore = tmp;
-    }
-
-    if (root["allowUnrated"] != Json::Value::nullSingleton() && root["allowUnrated"].isBool())
-        m_allowUnrated = root["allowUnrated"].asBool();
-
-    _read_genres_array(root);
-}
-
-void APIFilter::set_post(const Pistache::Rest::Request &req) {
-    if (req.hasParam("minDate"))
-        m_mindate = req.param("minDate").as<std::string>();
-
-    if (req.hasParam("maxDate"))
-        m_maxdate = req.param("maxDate").as<std::string>();
-
-    if (req.hasParam("minScore"))
-        m_minscore = req.param("minScore").as<float>();
-
-    if (req.hasParam("maxScore"))
-        m_maxscore = req.param("maxScore").as<float>();
-
-    if (m_minscore > m_maxscore) {
-        float tmp = m_maxscore;
-        m_maxscore = m_minscore;
-        m_minscore = tmp;
-    }
-
-    if (req.hasParam("allowUnrated"))
-        m_allowUnrated = req.param("allowUnrated").as<bool>();
-
-    if (!req.hasParam("allowedGenre")) return;
-
-    std::string allowedgenre_str = req.param("allowedGenre").as<std::string>(), err;
-    Json::CharReaderBuilder builder; Json::CharReader *reader = builder.newCharReader();
-    Json::Value root;
-
-    if (!reader->parse(allowedgenre_str.c_str(), allowedgenre_str.c_str() + allowedgenre_str.length(),
-        &root, &err)) {
-        delete reader; return;
-    }
-    delete reader;
-
-    _read_genres_array(root);
-}
-
-void APIFilter::_read_genres_array(const Json::Value &root) {
-    if (!root.empty() && root["genres"].isArray()) {
-        m_allowedgenre.clear();
-        for (auto i : root["genres"])
-            if (i.isInt()) {
-                try {
-                    m_allowedgenre.push_back(static_cast<enum genre>(i.asInt()));
-                } catch (std::exception&) {continue;}
-            }
+        try {
+            m_allowedgenre.push_back(static_cast<enum genre>(i.asInt()));
+        } catch (std::exception&) {continue;}
     }
 }
 
@@ -220,6 +161,8 @@ bool APIFilter::validate() const noexcept {
 
     if (!m_maxdate.empty())
         if (!std::regex_match(m_maxdate, regdate)) return false;
+
+    if (m_minscore > m_maxscore) return false;
 
     if (!(m_minscore >= 0 && m_minscore <= 5) || !( m_maxscore >= 0 && m_maxscore <= 5))
         return false;
@@ -246,29 +189,21 @@ const std::string APIFilter::getQuery() const noexcept {
         conditions.push_back("(submission_date BETWEEN \"" + m_mindate + "\" AND \"" + m_maxdate + "\")");
 
     if (m_allowedgenre.size() < 48) {
-        if (m_allowedgenre.size() == 1) {
-            conditions.push_back("genre=" + std::to_string(static_cast<int>(m_allowedgenre[0])));
-        } else {
-            std::string tmp = "genre IN (";
-            for (size_t i = 0; i < m_allowedgenre.size(); i++) {
-                tmp += std::to_string(static_cast<int>(m_allowedgenre[i]));
-                if (i != m_allowedgenre.size() - 1)
-                    tmp += ", ";
-            }
-            tmp += ')';
-            conditions.push_back(tmp);
+        std::string tmp = "genre IN (";
+        for (size_t i = 0; i < m_allowedgenre.size(); i++) {
+            tmp += std::to_string(static_cast<int>(m_allowedgenre[i]));
+            if (i != m_allowedgenre.size() - 1)
+                tmp += ", ";
         }
+        tmp += ')';
+        conditions.push_back(tmp);
     }
 
-    if (!conditions.empty())
-        sql_query << " WHERE ";
-
-    for (unsigned int i = 0; i < conditions.size(); i++) {
-        sql_query << conditions[i];
-        if (i != conditions.size()-1)
-            sql_query << " AND ";
+    if (!conditions.empty()) sql_query << " WHERE ";
+    for (std::vector<std::string>::const_iterator i = conditions.begin(); i != conditions.end(); i++) {
+        sql_query << *i;
+        if (i != conditions.end()) sql_query << " AND ";
     }
-
     sql_query << " ORDER BY RANDOM() LIMIT 25);";
 
     return sql_query.str();
@@ -279,7 +214,7 @@ APIFilterComposer::APIFilterComposer() {}
 APIFilterComposer::~APIFilterComposer() {}
 
 void APIFilterComposer::set(const Pistache::Rest::Request &req) {
-    m_composer = req.param("composer").as<std::string>();
+    m_composer = readJSONFromRequest(req).get("composer", "").asString();
 }
 
 bool APIFilterComposer::validate() const noexcept {
@@ -297,17 +232,10 @@ const std::string APIFilterComposer::getQuery() const noexcept {
 }
 
 void APIFilterRange::set(const Pistache::Rest::Request &req) {
-    unsigned int page = 0, mul = 100;
-    auto page_str = req.param("page").as<std::string>();
-    auto mul_str  = req.param("num").as<std::string>();
+    auto root = readJSONFromRequest(req);
+    auto mul  = root.get("mul", 1).asInt();
+    auto page = root.get("page", 1).asInt();
 
-    if (std::regex_match(mul_str, regnum))
-        mul = std::atoi(mul_str.c_str());
-
-    if (std::regex_match(page_str, regnum)) {
-        page = std::atoi(page_str.c_str());
-
-        m_min = page*mul + 1;
-        m_max = (page+1)*mul;
-    }
+    m_min = page*mul + 1;
+    m_max = (page+1)*mul;
 }

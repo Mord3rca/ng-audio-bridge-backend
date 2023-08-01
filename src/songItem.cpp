@@ -2,6 +2,7 @@
 
 #include <map>
 #include <array>
+#include <functional>
 
 static std::map< enum genre, const std::string > _genreStr = {{
     {genre::CLASSICAL, "Classical"}, {genre::JAZZ, "Jazz"},
@@ -147,25 +148,20 @@ const std::string& genreToGroupStr(const enum genre& _g) {
 SongItem::SongItem() : m_id(0), m_genre(genre::UNKNOWN), m_score(-1) {}
 
 SongItem::SongItem(int argc, char **argv, char **azColumn) : SongItem() {
-    int count = argc;
-    while (count--) {
-        std::string columnName = azColumn[count], value = (argv[count] != nullptr ? argv[count] : "");
+    std::map<const std::string, std::function<void(const std::string&)>> fmap = {{
+        {"id", [this](const std::string &v) -> void {this->m_id = std::stoul(v);}},
+        {"url", [this](const std::string &v) -> void {this->m_path = v;}},
+        {"title", [this](const std::string &v) -> void {this->m_title = v;}},
+        {"score", [this](const std::string &v) -> void {this->m_score = std::stof(v);}},
+        {"genre", [this](const std::string &v) -> void
+        {this->m_genre = static_cast<enum genre>(std::atoi(v.c_str()));}},
+        {"composer", [this](const std::string &v) -> void {this->m_composerName = v;}},
+        {"submission_date", [this](const std::string v) -> void {this->m_date = v;}},
+    }};
 
-        if (columnName == "id")
-            m_id = std::stoul(value);
-        else if (columnName == "title")
-            m_title = value;
-        else if (columnName == "composer")
-            m_composerName = value;
-        else if (columnName == "score")
-            m_score = std::stof(value);
-        else if (columnName == "submission_date")
-            m_date = value;
-        else if (columnName == "genre")
-            m_genre = static_cast<enum genre>(std::atoi(value.c_str()));
-        else if (columnName == "url")
-            m_path = value;
-  }
+    int count = argc;
+    while (count--)
+        fmap[azColumn[count]](argv[count] != nullptr ? argv[count] : "");
 }
 
 SongItem::~SongItem() {}

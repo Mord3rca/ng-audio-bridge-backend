@@ -47,34 +47,22 @@ void AudioBridgeFilter::set(const Pistache::Rest::Request &req) {
 
     delete json_read;
 
-    if (root["minScore"] != Json::Value::nullSingleton())
-        m_minscore = root["minScore"].asFloat();
-
-    if (root["maxScore"] != Json::Value::nullSingleton())
-        m_maxscore = root["maxScore"].asFloat();
+    m_minscore = root.get("minScore", 0).asFloat();
+    m_maxscore = root.get("maxScore", 5).asFloat();
 
     std::string::size_type pos;
-    if (root["minDate"] != Json::Value::nullSingleton()) {
-        m_mindate = root["minDate"].asString();
-        while ((pos = m_mindate.find('-')) != std::string::npos)
-            m_mindate.replace(pos, 1, "/");
-    }
+    m_mindate = root.get("minDate", "2003/01/01").asString();
+    while ((pos = m_mindate.find('-')) != std::string::npos)
+        m_mindate.replace(pos, 1, "/");
 
-    if (root["maxDate"] != Json::Value::nullSingleton()) {
-        m_maxdate = root["maxDate"].asString();
+    m_maxdate = root.get("maxDate", "").asString();
+    while ((pos = m_maxdate.find('-')) != std::string::npos)
+        m_maxdate.replace(pos, 1, "/");
 
-        while ((pos = m_maxdate.find('-')) != std::string::npos)
-            m_maxdate.replace(pos, 1, "/");
-    }
-
-    if (root["genres"] != Json::Value::nullSingleton() && root["genres"].isArray()) {
+    if (root["genres"].isArray()) {
         m_allowedgenre.clear();
-        for (auto i : root["genres"]) {
-            std::string _g = i.asString();
-
-            enum genre gr = strToGenre(_g);
-            m_allowedgenre.push_back(gr);
-        }
+        for (auto i : root["genres"])
+            m_allowedgenre.push_back(strToGenre(i.asString()));
     }
 }
 

@@ -25,7 +25,7 @@ class AudioServer {
 
     void getCrossdomain(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getAudioBridgeMp3(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
-    void postAudioBridgeFilter(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
+    void getAudioBridgeFilter(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
 
     void getGenres(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getTrackById(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);

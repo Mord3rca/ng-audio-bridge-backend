@@ -45,7 +45,7 @@ void AudioServer::setupRoutes() {
     Routes::Get(router, "/audio/serve/:unused/:id", Routes::bind(&AudioServer::getAudioBridgeMp3, this));
 
     Routes::Post(router, "/api/filter/old", Routes::bind(&AudioServer::getAudioBridgeMp3, this));
-    Routes::Post(router, "/Radio2/FilterBridge.php", Routes::bind(&AudioServer::postAudioBridgeFilter, this));
+    Routes::Post(router, "/Radio2/FilterBridge.php", Routes::bind(&AudioServer::getAudioBridgeFilter, this));
 
     // New API Routes
     Routes::Get(router, "/api/genres", Routes::bind(&AudioServer::getGenres, this));
@@ -134,7 +134,7 @@ void AudioServer::getFilterComposer(const Pistache::Rest::Request &req, Pistache
     response.send(Http::Code::Ok, "{\"Tracks\":" + rslt.toJson() + "}", MIME(Application, Json));
 }
 
-void AudioServer::postFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+void AudioServer::getFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     APIFilter filter; filter.set(req);
 
     if (!filter.validate()) {

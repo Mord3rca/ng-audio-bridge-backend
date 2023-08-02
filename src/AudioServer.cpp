@@ -114,8 +114,8 @@ void AudioServer::getGenres(const Pistache::Rest::Request &req, Pistache::Http::
     Json::FastWriter writer;
     Json::Value root, value;
     for (auto j : m_db->getGenreList()) {
-        value["id"] = std::get<1>(j);
-        value["name"] = std::to_string(std::get<0>(j));
+        value["id"] = std::get<0>(j);
+        value["name"] = std::get<1>(j);
 
         root.append(value);
     }

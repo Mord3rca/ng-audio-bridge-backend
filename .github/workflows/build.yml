@@ -15,7 +15,7 @@ jobs:
     - name: Install dependencies from APT
       run: |
         sudo apt update
-        sudo apt install libjsoncpp-dev libsqlite3-dev meson
+        sudo apt install libcurl4-openssl-dev libjsoncpp-dev libsqlite3-dev meson
     - name: Install dependencies from Github Repo
       run: |
         workdir=$(mktemp -d)

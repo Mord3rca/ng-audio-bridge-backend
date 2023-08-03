@@ -10,4 +10,4 @@ FILE(GLOB BACKEND_SOURCES "src/*.cpp")
 
 add_executable(ng-backend ${BACKEND_SOURCES})
 target_compile_options (ng-backend PRIVATE -std=c++17)
-target_link_libraries(ng-backend PkgConfig::Pistache PkgConfig::Sqlite PkgConfig::Jsoncpp pthread)
+target_link_libraries(ng-backend PkgConfig::Pistache PkgConfig::Sqlite PkgConfig::Jsoncpp pthread curl)

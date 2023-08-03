@@ -1,5 +1,6 @@
 #include "filter.hpp"
 
+#include <curl/curl.h>
 #include <json/json.h>
 
 static std::vector<enum genre> default_allowed_genre = {
@@ -45,15 +46,13 @@ AudioBridgeFilter::AudioBridgeFilter() :
 AudioBridgeFilter::~AudioBridgeFilter() {}
 
 void AudioBridgeFilter::set(const Pistache::Rest::Request &req) {
-    Json::CharReaderBuilder builder; Json::Value root;
-    auto arg = req.query().get("filterJSON");
-    if (!arg) return;
+    Json::Reader reader; Json::Value root;
+    CURL *curl = curl_easy_init(); int dlen;
+    auto arg = req.body().substr(11);
+    if (arg.empty()) return;
 
-    auto jsonstr = arg.value();
-    Json::CharReader *json_read = builder.newCharReader();
-    std::string err;
-
-    if (!json_read->parse(jsonstr.c_str(), jsonstr.c_str() + jsonstr.length(), &root, &err))
+    char *jsonstr = curl_easy_unescape(curl, arg.c_str(), arg.length(), &dlen);
+    if (!reader.parse(jsonstr, jsonstr + dlen, root))
         goto end;
 
     m_minscore = root.get("minScore", 0).asFloat();
@@ -73,9 +72,9 @@ void AudioBridgeFilter::set(const Pistache::Rest::Request &req) {
         for (auto i : root["genres"])
             m_allowedgenre.push_back(strToGenre(i.asString()));
     }
-
 end:
-    delete json_read;
+    curl_free(jsonstr);
+    curl_easy_cleanup(curl);
 }
 
 bool AudioBridgeFilter::validate() const noexcept {
@@ -93,7 +92,7 @@ const std::string AudioBridgeFilter::getQuery() const noexcept {
               << "FROM Tracks WHERE id IN (SELECT id FROM Tracks";
 
     if (!m_maxdate.empty() && m_mindate != "2003/01/01")
-        conditions.push_back("(submission_date BETWEEN \"" + m_mindate + "\" AND \"" + m_maxdate +"\")");
+        conditions.push_back("(submission_date BETWEEN '" + m_mindate + "' AND '" + m_maxdate +"')");
 
     if (m_minscore != 0 || m_maxscore != 5)
         conditions.push_back("(score BETWEEN " + std::to_string(m_minscore) +
@@ -104,10 +103,9 @@ const std::string AudioBridgeFilter::getQuery() const noexcept {
             conditions.push_back("genre=" + std::to_string(static_cast<int>(m_allowedgenre[0])));
         } else {
             std::string tmp = "genre IN (";
-            for (size_t i = 0; i < m_allowedgenre.size(); i++) {
-                tmp += std::to_string(static_cast<int>(m_allowedgenre[i]));
-                if (i != m_allowedgenre.size() - 1)
-                    tmp += ", ";
+            for (auto i = m_allowedgenre.begin(); i != m_allowedgenre.end(); i++) {
+                tmp += std::to_string(static_cast<int>(*i));
+                if (i != m_allowedgenre.end() - 1) tmp += ", ";
             }
             tmp += ')';
             conditions.push_back(tmp);
@@ -115,9 +113,9 @@ const std::string AudioBridgeFilter::getQuery() const noexcept {
     }
 
     if (!conditions.empty()) sql_query << " WHERE ";
-    for (std::vector<std::string>::const_iterator i = conditions.begin(); i != conditions.end(); i++) {
+    for (auto i = conditions.begin(); i != conditions.end(); i++) {
         sql_query << *i;
-        if (i != conditions.end()) sql_query << " AND ";
+        if (i != conditions.end() - 1) sql_query << " AND ";
     }
 
     sql_query << " ORDER BY RANDOM() LIMIT 25);";
@@ -180,29 +178,28 @@ const std::string APIFilter::getQuery() const noexcept {
                           " AND " + std::to_string(m_maxscore) + ")";
 
         if (m_allowUnrated)
-            tmp = "( " + tmp + "OR score=-1)";
+            tmp = "(" + tmp + " OR score=-1)";
 
         conditions.push_back(tmp);
     }
 
     if (m_mindate != "2003/01/01" || !m_maxdate.empty())
-        conditions.push_back("(submission_date BETWEEN \"" + m_mindate + "\" AND \"" + m_maxdate + "\")");
+        conditions.push_back("(submission_date BETWEEN '" + m_mindate + "' AND '" + m_maxdate + "')");
 
     if (m_allowedgenre.size() < 48) {
         std::string tmp = "genre IN (";
-        for (size_t i = 0; i < m_allowedgenre.size(); i++) {
-            tmp += std::to_string(static_cast<int>(m_allowedgenre[i]));
-            if (i != m_allowedgenre.size() - 1)
-                tmp += ", ";
+        for (auto i = m_allowedgenre.begin(); i != m_allowedgenre.end(); i++) {
+            tmp += std::to_string(static_cast<int>(*i));
+            if (i != m_allowedgenre.end() - 1) tmp += ", ";
         }
         tmp += ')';
         conditions.push_back(tmp);
     }
 
     if (!conditions.empty()) sql_query << " WHERE ";
-    for (std::vector<std::string>::const_iterator i = conditions.begin(); i != conditions.end(); i++) {
+    for (auto i = conditions.begin(); i != conditions.end(); i++) {
         sql_query << *i;
-        if (i != conditions.end()) sql_query << " AND ";
+        if (i != conditions.end() - 1) sql_query << " AND ";
     }
     sql_query << " ORDER BY RANDOM() LIMIT 25);";
 

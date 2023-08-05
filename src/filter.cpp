@@ -87,12 +87,16 @@ bool AudioBridgeFilter::validate() const noexcept {
 }
 
 const std::string AudioBridgeFilter::getQuery() const noexcept {
+    char *buff;
     std::ostringstream sql_query; std::vector<std::string> conditions;
     sql_query << "SELECT id,title,composer,score,genre,submission_date,url "
               << "FROM Tracks WHERE id IN (SELECT id FROM Tracks";
 
-    if (!m_maxdate.empty() && m_mindate != "2003/01/01")
-        conditions.push_back("(submission_date BETWEEN '" + m_mindate + "' AND '" + m_maxdate +"')");
+    if (!m_maxdate.empty() && m_mindate != "2003/01/01") {
+        buff = sqlite3_mprintf("(submission_date BETWEEN %Q AND %Q)", m_mindate.c_str(), m_maxdate.c_str());
+        conditions.push_back(buff);
+        sqlite3_free(buff);
+    }
 
     if (m_minscore != 0 || m_maxscore != 5)
         conditions.push_back("(score BETWEEN " + std::to_string(m_minscore) +
@@ -169,6 +173,7 @@ bool APIFilter::validate() const noexcept {
 }
 
 const std::string APIFilter::getQuery() const noexcept {
+    char *buff;
     std::ostringstream sql_query; std::vector<std::string> conditions;
     sql_query << "SELECT id,title,composer,score,genre,submission_date,url "
               << "FROM Tracks WHERE id IN (SELECT id FROM Tracks";
@@ -183,8 +188,11 @@ const std::string APIFilter::getQuery() const noexcept {
         conditions.push_back(tmp);
     }
 
-    if (m_mindate != "2003/01/01" || !m_maxdate.empty())
-        conditions.push_back("(submission_date BETWEEN '" + m_mindate + "' AND '" + m_maxdate + "')");
+    if (m_mindate != "2003/01/01" || !m_maxdate.empty()) {
+        buff = sqlite3_mprintf("(submission_date BETWEEN %Q AND %Q)", m_mindate.c_str(), m_maxdate.c_str());
+        conditions.push_back(buff);
+        sqlite3_free(buff);
+    }
 
     if (m_allowedgenre.size() < 48) {
         std::string tmp = "genre IN (";

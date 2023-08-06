@@ -60,6 +60,7 @@ void AudioServer::setupRoutes() {
 #endif  // NG_AUDIO_BRIDGE_COMPAT
 
     // New API Routes
+    Routes::Get(router, "/api/info", Routes::bind(&AudioServer::getInfo, this));
     Routes::Get(router, "/api/genres", Routes::bind(&AudioServer::getGenres, this));
     Routes::Get(router, "/api/version", Routes::bind(&AudioServer::getVersion, this));
     Routes::Get(router, "/api/track/:id", Routes::bind(&AudioServer::getTrackById, this));
@@ -112,6 +113,15 @@ void AudioServer::getAudioBridgeMp3(const Pistache::Rest::Request &req, Pistache
     response.send(Http::Code::Moved_Permanently);
 }
 #endif  // NG_AUDIO_BRIDGE_COMPAT
+
+void AudioServer::getInfo(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    Json::Value root;
+
+    root["count"] = m_db->getTracksCount();
+    root["id_max"] = m_db->getMaxId();
+
+    response.send(Http::Code::Ok, json_writer.write(root), MIME(Application, Json));
+}
 
 void AudioServer::getTrackById(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     auto rslt = m_db->getSongByID(req.param(":id").as<int>());

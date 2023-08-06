@@ -24,6 +24,7 @@ class IFilter {
     virtual const std::string getQuery() const noexcept = 0;
 };
 
+#ifdef NG_AUDIO_BRIDGE_COMPAT
 class AudioBridgeFilter : public IFilter {
  public:
     AudioBridgeFilter();
@@ -40,6 +41,7 @@ class AudioBridgeFilter : public IFilter {
 
     std::vector<enum genre> m_allowedgenre;
 };
+#endif  // NG_AUDIO_BRIDGE_COMPAT
 
 class APIFilter : public IFilter {
  public:

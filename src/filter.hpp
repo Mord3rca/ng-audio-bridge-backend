@@ -5,6 +5,7 @@ extern "C" {
     #include <sqlite3.h>
 }
 
+#include <json/json.h>
 #include <pistache/router.h>
 
 #include <regex>
@@ -12,6 +13,8 @@ extern "C" {
 #include <vector>
 
 #include "songItem.hpp"
+
+Json::Value readJSONFromRequest(const Pistache::Rest::Request&);
 
 class IFilter {
  public:

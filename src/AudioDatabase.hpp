@@ -55,6 +55,11 @@ class AudioDatabase {
     unsigned int getTracksCount() const noexcept
     {return m_info.count;}
 
+    // Write method
+    bool createSong(const SongItem&, const std::vector<std::string>&);
+    bool deleteSong(const SongItem&);
+    bool updateSong(const SongItem&, const std::vector<std::string>&);
+
  protected:
     static int sqlite3_callback(void*, int, char**, char**);
     static int sqlite3_info_callback(void*, int, char**, char**);

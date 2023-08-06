@@ -1,7 +1,5 @@
 #include "filter.hpp"
 
-#include <json/json.h>
-
 static std::vector<enum genre> default_allowed_genre = {
     genre::CLASSICAL, genre::JAZZ, genre::SOLO_INSTRUMENT,
 

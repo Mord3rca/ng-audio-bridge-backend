@@ -2,6 +2,7 @@
 
 #include <json/json.h>
 
+#include <vector>
 #include <string>
 
 using namespace Pistache;
@@ -59,6 +60,8 @@ void AudioServer::setupRoutes() {
     Routes::Post(router, "/Radio2/FilterBridge.php", Routes::bind(&AudioServer::getAudioBridgeFilter, this));
 #endif  // NG_AUDIO_BRIDGE_COMPAT
 
+    Routes::Delete(router, "/api/track/:id", Routes::bind(&AudioServer::deleteTrack, this));
+
     // New API Routes
     Routes::Get(router, "/api/info", Routes::bind(&AudioServer::getInfo, this));
     Routes::Get(router, "/api/genres", Routes::bind(&AudioServer::getGenres, this));
@@ -67,6 +70,10 @@ void AudioServer::setupRoutes() {
     Routes::Get(router, "/api/track/random", Routes::bind(&AudioServer::getRandomTrack, this));
     Routes::Get(router, "/api/filter", Routes::bind(&AudioServer::getFilter, this));
     Routes::Get(router, "/api/filter/composer", Routes::bind(&AudioServer::getFilterComposer, this));
+
+    Routes::Post(router, "/api/track/:id", Routes::bind(&AudioServer::updateTrack, this));
+
+    Routes::Put(router, "/api/track", Routes::bind(&AudioServer::createTrack, this));
 }
 
 void AudioServer::getVersion(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
@@ -113,6 +120,14 @@ void AudioServer::getAudioBridgeMp3(const Pistache::Rest::Request &req, Pistache
     response.send(Http::Code::Moved_Permanently);
 }
 #endif  // NG_AUDIO_BRIDGE_COMPAT
+
+void AudioServer::deleteTrack(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    SongItem item;
+    item.id(req.param(":id").as<unsigned int>());
+    auto status = m_db->deleteSong(item) ? Http::Code::Ok : Http::Code::Not_Found;
+
+    response.send(status);
+}
 
 void AudioServer::getInfo(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     Json::Value root;
@@ -183,4 +198,38 @@ void AudioServer::getFilter(const Pistache::Rest::Request &req, Pistache::Http::
     auto rslt = m_db->getViaFilter(filter);
     root["Tracks"] = audioResultToJson(rslt);
     response.send(Http::Code::Ok, json_writer.write(root), MIME(Application, Json));
+}
+
+void AudioServer::updateTrack(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    SongItem item;
+
+    Json::Value root = readJSONFromRequest(req);
+    item.id(req.param(":id").as<unsigned int>());
+    item.title(root["title"].asString());
+    item.composer(root["composer"].asString());
+    item.score(root["score"].asFloat());
+    item.genre(static_cast<enum genre>(root["genre"].asInt()));
+    item.date(root["submission_date"].asString());
+    item.url(root["url"].asString());
+
+    std::vector<std::string> tags;  // TODO(MOrd3rca): Process tags
+    auto status = m_db->updateSong(item, tags) ? Http::Code::Ok : Http::Code::Not_Found;
+    response.send(status);
+}
+
+void AudioServer::createTrack(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    SongItem item;
+
+    Json::Value root = readJSONFromRequest(req);
+    item.id(root["id"].asInt());
+    item.title(root["title"].asString());
+    item.composer(root["composer"].asString());
+    item.score(root["score"].asFloat());
+    item.genre(static_cast<enum genre>(root["genre"].asInt()));
+    item.date(root["submission_date"].asString());
+    item.url(root["url"].asString());
+
+    std::vector<std::string> tags;  // TODO(Mord3rca): Process tags
+    auto status = m_db->createSong(item, tags) ? Http::Code::Ok : Http::Code::Not_Found;
+    response.send(status);
 }

@@ -23,7 +23,8 @@ bool AudioDatabase::openDBFile(const std::string& filename, bool live) {
         return false;
 
     if (!live) _createIndex();
-    _getDBInfo();
+
+    sqlite3_exec(m_handler, "SELECT MAX(id), COUNT(id) FROM Tracks;", sqlite3_info_callback, this, nullptr);
 
     return true;
 }
@@ -108,11 +109,4 @@ int AudioDatabase::_loadDBInMemory(const std::string& filename) {
 void AudioDatabase::_createIndex() {
     sqlite3_exec(m_handler, "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre, composer);",
         nullptr, nullptr, nullptr);
-}
-
-void AudioDatabase::_getDBInfo() {
-    sqlite3_exec(m_handler, "SELECT MAX(id), COUNT(id) FROM Tracks;",
-        sqlite3_info_callback, this, nullptr);
-
-    std::cout << "loaded - Max ID: " << m_info.max_id << " / count: " << m_info.count << std::endl;
 }

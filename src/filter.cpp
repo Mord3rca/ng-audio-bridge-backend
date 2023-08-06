@@ -1,6 +1,5 @@
 #include "filter.hpp"
 
-#include <curl/curl.h>
 #include <json/json.h>
 
 static std::vector<enum genre> default_allowed_genre = {
@@ -36,6 +35,9 @@ Json::Value readJSONFromRequest(const Pistache::Rest::Request &req) {
     delete j;
     return root;
 }
+
+#ifdef NG_AUDIO_BRIDGE_COMPAT
+#include <curl/curl.h>
 
 AudioBridgeFilter::AudioBridgeFilter() :
     m_minscore(0), m_maxscore(5),
@@ -126,6 +128,7 @@ const std::string AudioBridgeFilter::getQuery() const noexcept {
 
     return sql_query.str();
 }
+#endif  // NG_AUDIO_BRIDGE_COMPAT
 
 APIFilter::APIFilter() :
     m_mindate("2003/01/01"), m_maxdate(""),

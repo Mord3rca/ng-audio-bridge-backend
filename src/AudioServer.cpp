@@ -6,15 +6,6 @@
 
 using namespace Pistache;
 
-static const std::string _crossdomain(
-"<?xml version=\"1.0\"?>\n"
-"<!DOCTYPE cross-domain-policy SYSTEM \"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd\">\n"
-"<cross-domain-policy>\n"
-"    <site-control permitted-cross-domain-policies=\"master-only\"/>\n"
-"    <allow-access-from domain=\"*\" secure=\"false\"/>\n"
-"    <allow-http-request-headers-from domain=\"*\" headers=\"*\"/>\n"
-"</cross-domain-policy>\n");
-
 AudioServer::AudioServer(Address addr) :
     httpEndpoint(std::make_shared<Http::Endpoint>(addr)),
     m_db(std::make_shared<AudioDatabase>())
@@ -40,12 +31,14 @@ AudioDatabase* AudioServer::getDatabase() {
 void AudioServer::setupRoutes() {
     using namespace Rest;
 
+#ifdef NG_AUDIO_BRIDGE_COMPAT
     // Old API Routes
     Routes::Get(router, "/crossdomain.xml", Routes::bind(&AudioServer::getCrossdomain, this));
     Routes::Get(router, "/audio/serve/:unused/:id", Routes::bind(&AudioServer::getAudioBridgeMp3, this));
 
     Routes::Post(router, "/api/filter/old", Routes::bind(&AudioServer::getAudioBridgeMp3, this));
     Routes::Post(router, "/Radio2/FilterBridge.php", Routes::bind(&AudioServer::getAudioBridgeFilter, this));
+#endif  // NG_AUDIO_BRIDGE_COMPAT
 
     // New API Routes
     Routes::Get(router, "/api/genres", Routes::bind(&AudioServer::getGenres, this));
@@ -59,6 +52,16 @@ void AudioServer::setupRoutes() {
 void AudioServer::getVersion(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     response.send(Http::Code::Ok, "{\"version\": \"0.1\"}", MIME(Application, Json));
 }
+
+#ifdef NG_AUDIO_BRIDGE_COMPAT
+static const std::string _crossdomain(
+"<?xml version=\"1.0\"?>\n"
+"<!DOCTYPE cross-domain-policy SYSTEM \"http://www.adobe.com/xml/dtds/cross-domain-policy.dtd\">\n"
+"<cross-domain-policy>\n"
+"    <site-control permitted-cross-domain-policies=\"master-only\"/>\n"
+"    <allow-access-from domain=\"*\" secure=\"false\"/>\n"
+"    <allow-http-request-headers-from domain=\"*\" headers=\"*\"/>\n"
+"</cross-domain-policy>\n");
 
 void AudioServer::getCrossdomain(const Rest::Request& request, Http::ResponseWriter response) {
     response.send(Http::Code::Ok, _crossdomain, MIME(Text, Xml));
@@ -86,6 +89,7 @@ void AudioServer::getAudioBridgeMp3(const Pistache::Rest::Request &req, Pistache
     response.headers().add<Http::Header::Location>(rslt[0].url());
     response.send(Http::Code::Moved_Permanently);
 }
+#endif  // NG_AUDIO_BRIDGE_COMPAT
 
 void AudioServer::getTrackById(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
     auto rslt = m_db->getSongByID(req.param(":id").as<int>());

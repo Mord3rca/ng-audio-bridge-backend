@@ -26,9 +26,13 @@ jobs:
         meson setup build --buildtype=release --prefix="/usr" -DPISTACHE_USE_SSL=true
         meson compile -C build
         sudo meson install -C build
-    - name: Building
+    - name: Building with Compat Mode
       run: |
-        mkdir build
-        cd build
-        cmake ..
+        cd "$(mktemp -d)"
+        cmake "${GITHUB_WORKSPACE}" -DNG_AUDIO_COMPATIBILITY_ENDPOINTS=ON
+        make
+    - name: Building without Compat Mode
+      run: |
+        cd "$(mktemp -d)"
+        cmake "${GITHUB_WORKSPACE}" -DNG_AUDIO_COMPATIBILITY_ENDPOINTS=OFF
         make

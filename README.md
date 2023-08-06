@@ -15,10 +15,16 @@ Build use `cmake`:
 ```sh
 $ mkdir build
 $ cd build
-$ cmake <path/to/ng-audio-backend>
+$ cmake <path/to/ng-audio-backend> [VARIABLES]
 $ make
 # make install
 ```
+
+* possible `cmake` variables:
+
+| Variable                            | Default | Description                                                     |
+| ----------------------------------- | ------- | --------------------------------------------------------------- |
+| NG\_AUDIO\_COMPATIBILITY\_ENDPOINTS | OFF     | Compile compatibility endpoints for old flash app compatibility |
 
 ## Network Modification
 

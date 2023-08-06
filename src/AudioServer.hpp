@@ -29,6 +29,7 @@ class AudioServer {
     void getAudioBridgeFilter(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
 #endif  // NG_AUDIO_BRIDGE_COMPAT
 
+    void getInfo(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getGenres(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getTrackById(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);
     void getRandomTrack(const Pistache::Rest::Request&, Pistache::Http::ResponseWriter);

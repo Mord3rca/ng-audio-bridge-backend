@@ -1,5 +1,20 @@
 #include "AudioDatabase.hpp"
 
+#include <ctime>
+
+static std::string currentDate() {
+    time_t rtime;
+    struct tm timeinfo;
+    char buff[12] = {0};
+
+    time(&rtime);
+    localtime_r(&rtime, &timeinfo);
+
+    strftime(buff, 12, "%Y/%m/%d", &timeinfo);
+
+    return std::string(buff);
+}
+
 AudioDatabase::AudioDatabase() : m_handler(nullptr), m_path("")
 {}
 
@@ -16,7 +31,7 @@ AudioDatabase::~AudioDatabase() {
 
 bool AudioDatabase::openDBFile(const std::string& filename, bool live) {
     int err = live ?
-              sqlite3_open_v2(filename.c_str(), &m_handler, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nullptr)
+              sqlite3_open_v2(filename.c_str(), &m_handler, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nullptr)
               : _loadDBInMemory(filename);
 
     if (err != SQLITE_OK)
@@ -109,4 +124,54 @@ int AudioDatabase::_loadDBInMemory(const std::string& filename) {
 void AudioDatabase::_createIndex() {
     sqlite3_exec(m_handler, "CREATE INDEX Tracks_Index ON Tracks(score, submission_date, genre, composer);",
         nullptr, nullptr, nullptr);
+}
+
+bool AudioDatabase::createSong(const SongItem& item, const std::vector<std::string>& tags) {
+    char *buff;
+    int result;
+    std::string tags_list;
+
+    for (auto t = tags.begin(); t < tags.end(); t++) {
+        tags_list += *t;
+        if (t != tags.end() - 1) tags_list += ';';
+    }
+
+    buff = sqlite3_mprintf("INSERT INTO Tracks (id, title, composer, score, genre, submission_date, url, tags, "
+                           "update_date) VALUES(%i, %Q, %Q, %f, %i, %Q, %Q, %Q, %Q);", item.id(), item.title().c_str(),
+                           item.composer().c_str(), item.score(), static_cast<int>(item.genre()), item.date().c_str(),
+                           item.url().c_str(), tags_list.c_str(), currentDate().c_str());
+    result = sqlite3_exec(m_handler, buff, nullptr, nullptr, nullptr);
+    sqlite3_free(buff);
+
+    return result == SQLITE_OK;
+}
+
+bool AudioDatabase::deleteSong(const SongItem& item) {
+     int result;
+     char *buff;
+
+     buff = sqlite3_mprintf("DELETE FROM Tracks WHERE id=%i;", item.id());
+     result = sqlite3_exec(m_handler, buff, nullptr, nullptr, nullptr);
+     sqlite3_free(buff);
+     return result == SQLITE_OK;
+}
+
+bool AudioDatabase::updateSong(const SongItem& item, const std::vector<std::string>& tags) {
+    char *buff;
+    int result;
+    std::string tags_list;
+
+    for (auto t = tags.begin(); t < tags.end(); t++) {
+        tags_list += *t;
+        if (t != tags.end() - 1) tags_list += ';';
+    }
+
+    buff = sqlite3_mprintf("UPDATE Tracks SET title = %Q, composer = %Q, score = %f, genre = %i, submission_date = %Q,"
+                           " url = %Q, tags = %Q, update_date = %Q WHERE id = %i;",  item.title().c_str(),
+                           item.composer().c_str(), item.score(), static_cast<int>(item.genre()), item.date().c_str(),
+                           item.url().c_str(), tags_list.c_str(), currentDate().c_str(), item.id());
+    result = sqlite3_exec(m_handler, buff, nullptr, nullptr, nullptr);
+    sqlite3_free(buff);
+
+    return result == SQLITE_OK;
 }

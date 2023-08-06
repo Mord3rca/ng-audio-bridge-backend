@@ -4,13 +4,13 @@
 
 Return an array of songs matching your filter
 
-## URL Parameters
+## Form parameter
 
   * filterJSON: JSON object containing filter parameters
     * minScore (num): Minimal Score
     * maxScore (num): Maximal Score
-    * minDate (string format: "\<YYYY\>/\<MM\>/\<DD\>"): Submission date
-    * maxDate (string format: "\<YYYY\>/\<MM\>/\<DD\>"): Submission date
+    * minDate (string format: "<YYYY\>-<MM\>-<DD\>"): Minimum submission date
+    * maxDate (string format: "<YYYY\>-<MM\>-<DD\>"): Maximum submission date
     * genres (Array\<string\>): Array of allowed genres
 
 ## Response

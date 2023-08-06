@@ -1,7 +1,5 @@
 #include "AudioDatabase.hpp"
 
-#include <json/json.h>
-
 AudioDatabase::AudioDatabase() : m_handler(nullptr), m_path("")
 {}
 
@@ -117,30 +115,4 @@ void AudioDatabase::_getDBInfo() {
         sqlite3_info_callback, this, nullptr);
 
     std::cout << "loaded - Max ID: " << m_info.max_id << " / count: " << m_info.count << std::endl;
-}
-
-AudioQueryResult::AudioQueryResult() {}
-
-AudioQueryResult::~AudioQueryResult() {
-    for (auto i : m_songs)
-        delete i;
-}
-
-const std::string AudioQueryResult::toJson() const {
-    Json::FastWriter writer;
-    Json::Value root, item;
-
-    for (const auto snd : m_songs) {
-        item["id"] = snd->id();
-        item["url"] = snd->url();
-        item["date"] = snd->date();
-        item["title"] = snd->title();
-        item["score"] = snd->score();
-        item["genre"] = genreToStr(snd->genre());
-        item["composer"] = snd->composer();
-
-        root.append(item);
-    }
-
-    return writer.write(root);
 }

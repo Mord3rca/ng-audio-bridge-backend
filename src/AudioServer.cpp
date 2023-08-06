@@ -6,6 +6,25 @@
 
 using namespace Pistache;
 
+static Json::FastWriter json_writer;
+
+static Json::Value audioResultToJson(const AudioQueryResult &data) {
+    Json::Value result, item;
+
+    for (const auto snd : data.songs()) {
+        item["id"] = snd->id();
+        item["url"] = snd->url();
+        item["date"] = snd->date();
+        item["title"] = snd->title();
+        item["score"] = snd->score();
+        item["genre"] = genreToStr(snd->genre());
+        item["composer"] = snd->composer();
+
+        result.append(item);
+    }
+    return result;
+}
+
 AudioServer::AudioServer(Address addr) :
     httpEndpoint(std::make_shared<Http::Endpoint>(addr)),
     m_db(std::make_shared<AudioDatabase>())
@@ -68,6 +87,7 @@ void AudioServer::getCrossdomain(const Rest::Request& request, Http::ResponseWri
 }
 
 void AudioServer::getAudioBridgeFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    Json::Value root;
     AudioBridgeFilter filter; filter.set(req);
 
     if (!filter.validate()) {
@@ -75,7 +95,9 @@ void AudioServer::getAudioBridgeFilter(const Pistache::Rest::Request &req, Pista
         return;
     }
 
-    response.send(Http::Code::Ok, "{\"ResultSet\":" + m_db->getViaFilter(filter).toJson() + "}");
+    root["ResultSet"] = audioResultToJson(m_db->getViaFilter(filter));
+
+    response.send(Http::Code::Ok, json_writer.write(root), MIME(Application, Json));
 }
 
 void AudioServer::getAudioBridgeMp3(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
@@ -115,7 +137,6 @@ void AudioServer::getRandomTrack(const Pistache::Rest::Request &req, Pistache::H
 }
 
 void AudioServer::getGenres(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
-    Json::FastWriter writer;
     Json::Value root, value;
     for (auto j : m_db->getGenreList()) {
         value["id"] = std::get<0>(j);
@@ -123,10 +144,11 @@ void AudioServer::getGenres(const Pistache::Rest::Request &req, Pistache::Http::
 
         root.append(value);
     }
-    response.send(Http::Code::Ok, "{\"genres\": " + writer.write(root) + "}", MIME(Application, Json));
+    response.send(Http::Code::Ok, "{\"genres\": " + json_writer.write(root) + "}", MIME(Application, Json));
 }
 
 void AudioServer::getFilterComposer(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    Json::Value root;
     APIFilterComposer filter; filter.set(req);
 
     if (!filter.validate()) {
@@ -135,10 +157,12 @@ void AudioServer::getFilterComposer(const Pistache::Rest::Request &req, Pistache
     }
 
     auto rslt = m_db->getViaFilter(filter);
-    response.send(Http::Code::Ok, "{\"Tracks\":" + rslt.toJson() + "}", MIME(Application, Json));
+    root["Tracks"] = audioResultToJson(rslt);
+    response.send(Http::Code::Ok, json_writer.write(root), MIME(Application, Json));
 }
 
 void AudioServer::getFilter(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    Json::Value root;
     APIFilter filter; filter.set(req);
 
     if (!filter.validate()) {
@@ -147,5 +171,6 @@ void AudioServer::getFilter(const Pistache::Rest::Request &req, Pistache::Http::
     }
 
     auto rslt = m_db->getViaFilter(filter);
-    response.send(Http::Code::Ok, "{\"Tracks\":" + rslt.toJson() + "}", MIME(Application, Json));
+    root["Tracks"] = audioResultToJson(rslt);
+    response.send(Http::Code::Ok, json_writer.write(root), MIME(Application, Json));
 }

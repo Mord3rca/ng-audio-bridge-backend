@@ -15,15 +15,19 @@ extern "C" {
 class AudioQueryResult {
     friend class AudioDatabase;
  public:
-    AudioQueryResult();
-    ~AudioQueryResult();
+    AudioQueryResult() {}
+    ~AudioQueryResult() {
+        for (auto i : m_songs)
+            delete i;
+    }
 
     bool isEmpty() const
     {return m_songs.empty();}
     const SongItem& operator[](ssize_t i) const
     {return *m_songs[i];}
 
-    const std::string toJson() const;
+    const std::vector<const SongItem*> songs() const
+    {return m_songs;}
 
  private:
     std::vector<const SongItem*> m_songs;

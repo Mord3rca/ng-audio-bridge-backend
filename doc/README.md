@@ -16,17 +16,21 @@ Except for compatibility endpoints, the API is expecting a JSON payload.
 
 ### Info
 
-| URI          | Method                      | Description                         |
-| ------------ | --------------------------- | ----------------------------------- |
-| /api/genres  | [GET](api/genres/get.md)    | Get an array of all possible genres |
-| /api/version | [GET](api/version.md)       | Get API version                     |
+| URI          | Method                      | Description                           |
+| ------------ | --------------------------- | ------------------------------------- |
+| /api/info    | [GET](api/info/get.md)      | Get a JSON object containing DB infos |
+| /api/genres  | [GET](api/genres/get.md)    | Get an array of all possible genres   |
+| /api/version | [GET](api/version.md)       | Get API version                       |
 
 ### Track
 
-| URI                 | Method                  | Description                 |
-| ------------------- | ----------------------- | --------------------------- |
-| /api/track/\<id\>   | [GET](api/track/get.md) | Get audio file location     |
-| /api/track/random   | [GET](api/track/get.md) | Get a rondam track location |
+| URI                 | Method                        | Description                 |
+| ------------------- | ----------------------------- | --------------------------- |
+| /api/track          | [PUT](api/track/put.md)       | Adding a song               |
+| /api/track/\<id\>   | [GET](api/track/get.md)       | Get audio file location     |
+| /api/track/\<id\>   | [POST](api/track/post.md)     | Update a song               |
+| /api/track/\<id\>   | [DELETE](api/track/delete.md) | Delete a song               |
+| /api/track/random   | [GET](api/track/get.md)       | Get a random track location |
 
 ### Filters
 
